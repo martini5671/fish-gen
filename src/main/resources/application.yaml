@@ -1,0 +1,9 @@
+spring:
+  config:
+    import:
+      - optional:application-secrets.yml
+  ai:
+    anthropic:
+      api-key:
+  application:
+    name: fish-gen
