@@ -4,6 +4,19 @@ spring:
       - optional:application-secrets.yml
   ai:
     anthropic:
-      api-key:
+      api-key: ${claude.key}
+      chat:
+        model: claude-haiku-4-5
   application:
     name: fish-gen
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fishgen
+    username: ${db.username}
+    password: ${db.password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

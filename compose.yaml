@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: fish-gen-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fishgen
+      POSTGRES_USER: fishgen
+      POSTGRES_PASSWORD: fishgen
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fishgen -d fishgen"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
