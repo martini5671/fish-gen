@@ -19,7 +19,8 @@ public class CollectionController {
 
     @GetMapping
     public Page<CollectionDto> getCollections(CollectionFilter collectionFilter,
-                                              @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+                                              @PageableDefault(sort = "createdAt",
+                                                      direction = Sort.Direction.DESC)
                                               Pageable pageable) {
         return collectionService.getCollections(collectionFilter, pageable)
                 .map(CollectionDto::from);
