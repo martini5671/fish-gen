@@ -12,20 +12,23 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OriginalText {
+public class FlashcardCollection extends AuditingBaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private String name;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String text;
 
     @Builder.Default
-    @OneToMany(mappedBy = "originalText", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "flashcardCollection", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Flashcard> flashcards = new ArrayList<>();
 
     public void addFlashcard(Flashcard flashcard) {
         flashcards.add(flashcard);
-        flashcard.setOriginalText(this);
+        flashcard.setFlashcardCollection(this);
     }
 }

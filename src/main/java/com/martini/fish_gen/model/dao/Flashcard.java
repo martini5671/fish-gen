@@ -1,6 +1,5 @@
 package com.martini.fish_gen.model.dao;
 
-import com.martini.fish_gen.model.enumeration.Status;
 import com.martini.fish_gen.model.enumeration.TargetLanguage;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,14 +17,12 @@ public class Flashcard {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "original_text_id", nullable = false)
-    private OriginalText originalText;
+    @JoinColumn(name = "flashcard_collection_id", nullable = false)
+    private FlashcardCollection flashcardCollection;
 
     @Enumerated(EnumType.STRING)
     private TargetLanguage targetLanguage;
 
-    @Enumerated(EnumType.STRING)
-    private Status status;
     private String source;
     private String target;
 

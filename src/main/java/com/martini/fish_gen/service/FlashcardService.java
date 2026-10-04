@@ -1,67 +1,58 @@
 package com.martini.fish_gen.service;
 
-import com.martini.fish_gen.exception.FlashCardGenerationException;
+import com.github.javafaker.Faker;
 import com.martini.fish_gen.model.dao.Flashcard;
-import com.martini.fish_gen.model.dao.OriginalText;
+import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
 import com.martini.fish_gen.model.dto.FlashcardDto;
-import com.martini.fish_gen.model.enumeration.Status;
-import com.martini.fish_gen.repository.OriginalTextRepository;
+import com.martini.fish_gen.repository.FlashcardCollectionRepository;
+import com.martini.fish_gen.repository.FlashcardRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class FlashcardService {
+    private final FlashcardCollectionRepository flashcardCollectionRepository;
+    private final FlashcardRepository flashcardRepository;
+    private final FlashcardGeneratorService flashcardGeneratorService;
+    private final Faker faker = new Faker();
 
-    private static final String TARGET_TRANSLATION_TEMPLATE_PARAM = "target_translation";
-    private final ChatClient chatClient;
-    private final PromptTemplate promptTemplate;
-    private final OriginalTextRepository originalTextRepository;
-
+    @Transactional
     public void createPendingFlashCards(CreateFlashcardsDto dto) {
-
-        String systemPrompt = promptTemplate.render(Map.of(
-                TARGET_TRANSLATION_TEMPLATE_PARAM,
-                dto.targetLanguage().toString().toLowerCase())
-        );
-
-        List<FlashcardDto> generatedFlashCards;
-        try {
-            generatedFlashCards =
-                    Optional.ofNullable(chatClient.prompt()
-                                    .system(systemPrompt)
-                                    .user(dto.textToScan())
-                                    .call()
-                                    .entity(new ParameterizedTypeReference<List<FlashcardDto>>() {
-                                    }))
-                            .orElse(Collections.emptyList());
-        } catch (RuntimeException e) {
-            throw new FlashCardGenerationException("Ai agent failed to generate flashcards", e);
-        }
-
-        OriginalText originalText = OriginalText.builder()
+        String resolvedCollectionName = Objects.requireNonNullElse(dto.collectionName(),
+                faker.color().name() + "_" + faker.animal().name());
+        FlashcardCollection flashcardCollection = FlashcardCollection.builder()
+                .name(resolvedCollectionName)
                 .text(dto.textToScan())
                 .build();
 
-        generatedFlashCards.stream()
-                .map(flashCardDto -> Flashcard.builder()
-                        .source(flashCardDto.source())
-                        .target(flashCardDto.target())
-                        .status(Status.PENDING)
+        flashcardGeneratorService.generateFlashcards(dto.textToScan(), dto.targetLanguage()).stream()
+                .map(generatedFlashcard -> Flashcard.builder()
+                        .source(generatedFlashcard.source())
+                        .target(generatedFlashcard.target())
                         .targetLanguage(dto.targetLanguage())
                         .build())
-                .forEach(originalText::addFlashcard);
-
-        originalTextRepository.save(originalText);
-
+                .forEach(flashcardCollection::addFlashcard);
+        flashcardCollectionRepository.save(flashcardCollection);
     }
+
+    @Transactional(readOnly = true)
+    public List<FlashcardDto> getFlashcardsByCollectionId(Long collectionId) {
+        if (!flashcardCollectionRepository.existsById(collectionId)) {
+            throw new EntityNotFoundException(
+                    String.format("Collection with id %s not found", collectionId)
+            );
+        }
+        return flashcardRepository.findAllByFlashcardCollectionIdOrderById(collectionId)
+                .stream()
+                .map(FlashcardDto::from)
+                .toList();
+    }
+
 }
