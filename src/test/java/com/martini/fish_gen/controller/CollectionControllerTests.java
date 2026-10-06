@@ -1,8 +1,10 @@
 package com.martini.fish_gen.controller;
 
 import com.martini.fish_gen.configuration.BaseIntegrationTest;
+import com.martini.fish_gen.model.dto.UpdateCollectionNameDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.util.List;
@@ -70,6 +72,48 @@ public class CollectionControllerTests extends BaseIntegrationTest {
                 .jsonPath("$.content.length()").isEqualTo(1)
                 .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
                         ids -> assertThat(ids).containsExactlyInAnyOrder(3L));
+    }
+
+    @Test
+    void givenNoCollectionExistsForUpdate_whenUpdateCollectionName_shouldReturn404(){
+        var id = 999;
+        restTestClient.patch()
+                .uri("/api/v1/collections/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(UpdateCollectionNameDto.builder()
+                        .collectionName("TEST")
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenCollectionExistsForUpdate_whenUpdateCollectionName_shouldSucceed(){
+        var id = 1;
+        restTestClient.patch()
+                .uri("/api/v1/collections/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(UpdateCollectionNameDto.builder()
+                        .collectionName("TEST")
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        restTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/collections")
+                        .queryParam("page", 0)
+                        .queryParam("size", 5)
+                        .queryParam("name", "TEST")
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.content[0].name").isEqualTo("TEST");
     }
 
 }

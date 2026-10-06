@@ -32,7 +32,8 @@ public class CollectionController {
     }
 
     @PatchMapping("/{id}")
-    public void updateCollectionNameById(@PathVariable Long id, UpdateCollectionNameDto dto) {
+    public void updateCollectionNameById(@PathVariable Long id,
+                                         @RequestBody UpdateCollectionNameDto dto) {
         collectionService.updateCollectionName(id, dto.collectionName());
     }
 
