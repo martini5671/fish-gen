@@ -22,7 +22,7 @@ public class FlashcardGeneratorService {
     private final ChatClient chatClient;
     private final PromptTemplate promptTemplate;
 
-    List<GeneratedFlashcard> generateFlashcards(String userText, TargetLanguage targetLanguage) {
+    public List<GeneratedFlashcard> generateFlashcards(String userText, TargetLanguage targetLanguage) {
         String systemPrompt = promptTemplate.render(Map.of(
                 TARGET_TRANSLATION_TEMPLATE_PARAM,
                 targetLanguage.toString().toLowerCase())

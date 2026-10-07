@@ -4,7 +4,6 @@ import com.github.javafaker.Faker;
 import com.martini.fish_gen.model.dao.Flashcard;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
-import com.martini.fish_gen.model.dto.FlashcardDto;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.repository.FlashcardRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,7 +23,7 @@ public class FlashcardService {
     private final Faker faker = new Faker();
 
     @Transactional
-    public void createPendingFlashCards(CreateFlashcardsDto dto) {
+    public void createAiFlashcards(CreateFlashcardsDto dto) {
         String resolvedCollectionName = Objects.requireNonNullElse(dto.collectionName(),
                 faker.color().name() + "_" + faker.animal().name());
         FlashcardCollection flashcardCollection = FlashcardCollection.builder()
@@ -32,7 +31,8 @@ public class FlashcardService {
                 .text(dto.textToScan())
                 .build();
 
-        flashcardGeneratorService.generateFlashcards(dto.textToScan(), dto.targetLanguage()).stream()
+        flashcardGeneratorService.generateFlashcards(dto.textToScan(), dto.targetLanguage())
+                .stream()
                 .map(generatedFlashcard -> Flashcard.builder()
                         .source(generatedFlashcard.source())
                         .target(generatedFlashcard.target())
@@ -43,7 +43,7 @@ public class FlashcardService {
     }
 
     @Transactional(readOnly = true)
-    public List<FlashcardDto> getFlashcardsByCollectionId(Long collectionId) {
+    public List<Flashcard> getFlashcardsByCollectionId(Long collectionId) {
         if (!flashcardCollectionRepository.existsById(collectionId)) {
             throw new EntityNotFoundException(
                     String.format("Collection with id %s not found", collectionId)
@@ -51,7 +51,6 @@ public class FlashcardService {
         }
         return flashcardRepository.findAllByFlashcardCollectionIdOrderById(collectionId)
                 .stream()
-                .map(FlashcardDto::from)
                 .toList();
     }
 
