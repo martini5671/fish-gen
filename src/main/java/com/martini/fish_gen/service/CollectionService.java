@@ -30,18 +30,18 @@ public class CollectionService {
 
     @Transactional
     public void removeById(Long id) {
-        FlashcardCollection flashcardCollection = flashcardCollectionRepository.findByIdIsAndUser_Username(
-                        id, currentUserService.getUsername())
-                .orElseThrow(EntityNotFoundException::new);
-        flashcardCollectionRepository.delete(flashcardCollection);
+        flashcardCollectionRepository.delete(findOwnedCollection(id));
     }
 
     @Transactional
     public void updateCollectionName(Long id, String newCollectionName) {
-        FlashcardCollection flashcardCollection = flashcardCollectionRepository.findByIdIsAndUser_Username(
-                        id, currentUserService.getUsername())
-                .orElseThrow(() -> new EntityNotFoundException("Collection with id " + id + " not found"));
+        FlashcardCollection flashcardCollection = findOwnedCollection(id);
         flashcardCollection.setName(newCollectionName);
         flashcardCollectionRepository.save(flashcardCollection);
+    }
+
+    private FlashcardCollection findOwnedCollection(Long id) {
+        return flashcardCollectionRepository.findByIdIsAndUser_Username(id, currentUserService.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Collection with id " + id + " not found"));
     }
 }

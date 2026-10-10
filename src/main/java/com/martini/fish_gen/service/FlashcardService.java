@@ -54,12 +54,10 @@ public class FlashcardService {
 
     @Transactional(readOnly = true)
     public List<Flashcard> getFlashcardsByCollectionId(Long collectionId) {
-        List<Flashcard> flashcards = flashcardRepository.findAllByFlashcardCollection_IdAndFlashcardCollection_User_UsernameOrderById(
-                collectionId, currentUserService.getUsername());
-        if (flashcards.isEmpty()) {
-            throw new EntityNotFoundException("Collection with id " + collectionId +  " not found");
+        if (!flashcardCollectionRepository.existsByIdAndUser_Username(collectionId, currentUserService.getUsername())) {
+            throw new EntityNotFoundException("Collection with id " + collectionId + " not found");
         }
-        return flashcards;
+        return flashcardRepository.findAllByFlashcardCollectionIdOrderById(collectionId);
     }
 
 }

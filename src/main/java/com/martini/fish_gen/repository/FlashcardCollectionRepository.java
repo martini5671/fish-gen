@@ -13,6 +13,8 @@ public interface FlashcardCollectionRepository extends JpaRepository<FlashcardCo
 
     Optional<FlashcardCollection> findByIdIsAndUser_Username(Long id, String userUsername);
 
+    boolean existsByIdAndUser_Username(Long id, String userUsername);
+
     // A null parameter disables its filter; namePattern is a ready LIKE pattern with '!' as the escape character.
     // The casts give PostgreSQL a type for a null timestamp, otherwise it fails with "could not determine data type".
     @Query("""

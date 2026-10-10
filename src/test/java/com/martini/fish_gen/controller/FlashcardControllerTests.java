@@ -277,7 +277,9 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .uri("/api/v1/flashcards/collections/{collectionId}", 11)
                 .exchange()
                 .expectStatus()
-                .isNotFound();
+                .isOk()
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(0);
     }
 
     @Test
