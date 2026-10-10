@@ -5,10 +5,13 @@ import com.martini.fish_gen.model.dto.CollectionFilter;
 import com.martini.fish_gen.model.dto.UpdateCollectionNameDto;
 import com.martini.fish_gen.service.CollectionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,7 +24,8 @@ public class CollectionController {
     public Page<CollectionDto> getCollections(CollectionFilter collectionFilter,
                                               @PageableDefault(sort = "createdAt",
                                                       direction = Sort.Direction.DESC)
-                                              Pageable pageable) {
+                                              Pageable pageable
+    ) {
         return collectionService.getCollections(collectionFilter, pageable)
                 .map(CollectionDto::from);
     }

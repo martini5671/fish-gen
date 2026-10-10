@@ -1,9 +1,11 @@
 package com.martini.fish_gen.service;
 
 import com.github.javafaker.Faker;
+import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.dao.Flashcard;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
+import com.martini.fish_gen.repository.ApplicationUserRepository;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.repository.FlashcardRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,13 +23,21 @@ public class FlashcardService {
     private final FlashcardRepository flashcardRepository;
     private final FlashcardGeneratorService flashcardGeneratorService;
     private final Faker faker = new Faker();
+    private final ApplicationUserRepository applicationUserRepository;
+    private final CurrentUserService currentUserService;
 
     @Transactional
     public void createAiFlashcards(CreateFlashcardsDto dto) {
         String resolvedCollectionName = Objects.requireNonNullElse(dto.collectionName(),
                 faker.color().name() + "_" + faker.animal().name());
+
+        ApplicationUser applicationUser = applicationUserRepository.findByUsername(
+                        currentUserService.getUsername())
+                .orElseThrow(EntityNotFoundException::new);
+
         FlashcardCollection flashcardCollection = FlashcardCollection.builder()
                 .name(resolvedCollectionName)
+                .user(applicationUser)
                 .text(dto.textToScan())
                 .build();
 
@@ -44,12 +54,8 @@ public class FlashcardService {
 
     @Transactional(readOnly = true)
     public List<Flashcard> getFlashcardsByCollectionId(Long collectionId) {
-        if (!flashcardCollectionRepository.existsById(collectionId)) {
-            throw new EntityNotFoundException(
-                    String.format("Collection with id %s not found", collectionId)
-            );
-        }
-        return flashcardRepository.findAllByFlashcardCollectionIdOrderById(collectionId)
+        return flashcardRepository.findAllByFlashcardCollection_IdAndFlashcardCollection_User_UsernameOrderById(
+                        collectionId, currentUserService.getUsername())
                 .stream()
                 .toList();
     }

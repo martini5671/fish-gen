@@ -23,6 +23,10 @@ public class FlashcardCollection extends AuditingBaseEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String text;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private ApplicationUser user;
+
     @Builder.Default
     @OneToMany(mappedBy = "flashcardCollection", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Flashcard> flashcards = new ArrayList<>();
