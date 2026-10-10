@@ -54,7 +54,7 @@ public class BaseIntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
     }
 
-    public RestTestClient getAuthenticatedRestTestClient() {
+    public RestTestClient authenticatedRestTestClient() {
         TokenDto tokenDto = login(TEST_USER_USERNAME, TEST_USER_PASSWORD);
         return restTestClient.mutate()
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + tokenDto.accessToken())

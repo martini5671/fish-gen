@@ -14,7 +14,6 @@ public class AuthControllerTests extends BaseIntegrationTest {
     @Test
     void givenCorrectCredentials_whenLogin_thenReturnsBearerToken() {
         TokenDto token = login(TEST_USER_USERNAME, TEST_USER_PASSWORD);
-
         assertThat(token.accessToken()).isNotBlank();
         assertThat(token.tokenType()).isEqualTo("Bearer");
         assertThat(token.expiresIn()).isEqualTo(3600);

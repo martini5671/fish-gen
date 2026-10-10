@@ -41,16 +41,6 @@ public class ApplicationUser {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FlashcardCollection> collections = new ArrayList<>();
 
-    public void addCollection(FlashcardCollection collection) {
-        collections.add(collection);
-        collection.setUser(this);
-    }
-
-    public void removeCollection(FlashcardCollection collection) {
-        collections.remove(collection);
-        collection.setUser(null);
-    }
-
     public Set<Role> getRoles() {
         return Arrays.stream(roles.split(","))
                 .map(Role::valueOf)

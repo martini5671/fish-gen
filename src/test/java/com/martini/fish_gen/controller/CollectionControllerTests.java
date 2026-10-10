@@ -30,7 +30,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCorrectDateFilter_whenGetCollections_shouldReturnFilteredCollections() {
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/collections")
                         .queryParam("page", 0)
@@ -51,7 +51,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenFilterWithName_whenGetCollections_shouldReturnFilteredCollections() {
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/collections")
                         .queryParam("page", 0)
@@ -70,7 +70,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenFilterWithNameAndDate_whenGetCollections_shouldReturnFilteredCollections() {
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/collections")
                         .queryParam("page", 0)
@@ -91,7 +91,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenDateTimeFilter_whenGetCollections_shouldApplyTimeOfDayWithInclusiveBounds() {
         // Bounds sit exactly on collections 5 (09-10 23:59:59) and 6 (09-11 00:00:00); 4 from the same day as 5 is excluded by its time
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/collections")
                         .queryParam("page", 0)
@@ -111,7 +111,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Test
     void givenNoCollectionExistsForUpdate_whenUpdateCollectionName_shouldReturn404(){
         var id = 999;
-        getAuthenticatedRestTestClient().patch()
+        authenticatedRestTestClient().patch()
                 .uri("/api/v1/collections/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(UpdateCollectionNameDto.builder()
@@ -126,7 +126,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCollectionExistsForUpdate_whenUpdateCollectionName_shouldSucceed(){
         var id = 1;
-        getAuthenticatedRestTestClient().patch()
+        authenticatedRestTestClient().patch()
                 .uri("/api/v1/collections/{id}", id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(UpdateCollectionNameDto.builder()
@@ -136,7 +136,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
                 .expectStatus()
                 .isOk();
 
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/collections")
                         .queryParam("page", 0)
@@ -153,7 +153,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCollectionOfOtherUser_whenUpdateCollectionName_shouldReturn404AndKeepName() {
-        getAuthenticatedRestTestClient().patch()
+        authenticatedRestTestClient().patch()
                 .uri("/api/v1/collections/{id}", OTHER_USER_COLLECTION_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(UpdateCollectionNameDto.builder()
@@ -173,7 +173,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenOwnCollection_whenDelete_shouldRemoveCollectionWithFlashcards() {
         var id = 1L;
-        getAuthenticatedRestTestClient().delete()
+        authenticatedRestTestClient().delete()
                 .uri("/api/v1/collections/{id}", id)
                 .exchange()
                 .expectStatus()
@@ -186,7 +186,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCollectionOfOtherUser_whenDelete_shouldReturn404AndKeepCollection() {
-        getAuthenticatedRestTestClient().delete()
+        authenticatedRestTestClient().delete()
                 .uri("/api/v1/collections/{id}", OTHER_USER_COLLECTION_ID)
                 .exchange()
                 .expectStatus()
@@ -198,7 +198,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenNoCollectionExists_whenDelete_shouldReturn404() {
-        getAuthenticatedRestTestClient().delete()
+        authenticatedRestTestClient().delete()
                 .uri("/api/v1/collections/{id}", 999)
                 .exchange()
                 .expectStatus()

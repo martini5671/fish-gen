@@ -44,7 +44,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                         GeneratedFlashcard.builder().source("hola").target("cześć").build(),
                         GeneratedFlashcard.builder().source("soy").target("jestem").build()));
 
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -79,7 +79,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
         Mockito.when(flashcardGeneratorService.generateFlashcards(TEXT_TO_SCAN, TargetLanguage.ENGLISH))
                 .thenReturn(List.of(GeneratedFlashcard.builder().source("hola").target("hello").build()));
 
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -101,7 +101,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
         Mockito.when(flashcardGeneratorService.generateFlashcards(TEXT_TO_SCAN, TargetLanguage.POLISH))
                 .thenReturn(List.of());
 
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -123,7 +123,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .thenThrow(new FlashCardGenerationException("Ai agent failed to generate flashcards",
                         new RuntimeException("timeout")));
 
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -141,7 +141,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenTooShortText_whenCreateAiFlashcards_thenReturns400() {
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -162,7 +162,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenTooLongText_whenCreateAiFlashcards_thenReturns400() {
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -181,7 +181,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenBlankText_whenCreateAiFlashcards_thenReturns400() {
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -200,7 +200,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenNoTargetLanguage_whenCreateAiFlashcards_thenReturns400() {
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -218,7 +218,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenTooLongCollectionName_whenCreateAiFlashcards_thenReturns400() {
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(CreateFlashcardsDto.builder()
@@ -238,7 +238,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenUnknownTargetLanguage_whenCreateAiFlashcards_thenReturns400() {
-        getAuthenticatedRestTestClient().post()
+        authenticatedRestTestClient().post()
                 .uri("/api/v1/flashcards/ai")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("""
@@ -256,7 +256,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCollectionWithFlashcards_whenGetByCollectionId_thenReturnsFlashcardsOrderedById() {
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri("/api/v1/flashcards/collections/{collectionId}", 1)
                 .exchange()
                 .expectStatus()
@@ -273,20 +273,18 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCollectionWithoutFlashcards_whenGetByCollectionId_thenReturnsEmptyList() {
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri("/api/v1/flashcards/collections/{collectionId}", 11)
                 .exchange()
                 .expectStatus()
-                .isOk()
-                .expectBody()
-                .jsonPath("$.length()").isEqualTo(0);
+                .isNotFound();
     }
 
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCollectionOfOtherUser_whenGetByCollectionId_thenReturns404() {
         // Collection 13 belongs to other-user; 404 rather than 403 so ids of other users' collections can't be probed
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri("/api/v1/flashcards/collections/{collectionId}", 13)
                 .exchange()
                 .expectStatus()
@@ -313,7 +311,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenNoCollectionExists_whenGetByCollectionId_thenReturns404() {
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri("/api/v1/flashcards/collections/{collectionId}", 999)
                 .exchange()
                 .expectStatus()
@@ -324,7 +322,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenNonNumericCollectionId_whenGetByCollectionId_thenReturns400() {
-        getAuthenticatedRestTestClient().get()
+        authenticatedRestTestClient().get()
                 .uri("/api/v1/flashcards/collections/{collectionId}", "abc")
                 .exchange()
                 .expectStatus()

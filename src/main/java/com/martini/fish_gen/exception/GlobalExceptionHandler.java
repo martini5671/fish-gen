@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
 
     // Malformed JSON or a value that cannot be converted, e.g. an unknown enum constant
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ProblemDetail handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+    public ProblemDetail handleHttpMessageNotReadable(HttpMessageNotReadableException ignoredEx) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Request body is malformed or contains invalid values");
         problem.setTitle("Malformed request");
         return problem;
@@ -83,7 +83,7 @@ public class GlobalExceptionHandler {
 
     // Failed login, e.g. unknown username or wrong password. Same message for both, so usernames can't be probed.
     @ExceptionHandler(AuthenticationException.class)
-    public ProblemDetail handleAuthentication(AuthenticationException ex) {
+    public ProblemDetail handleAuthentication(AuthenticationException ignoredEx) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         problem.setTitle("Authentication failed");
         return problem;
