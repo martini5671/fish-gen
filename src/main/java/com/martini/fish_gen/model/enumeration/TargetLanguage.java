@@ -1,4 +1,4 @@
-package com.martini.fish_gen.model.dto;
+package com.martini.fish_gen.model.enumeration;
 
 public enum TargetLanguage {
     POLISH,

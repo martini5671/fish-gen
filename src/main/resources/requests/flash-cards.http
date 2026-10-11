@@ -1,0 +1,19 @@
+@host = http://localhost:8080
+
+### Create flash cards from text using AI (translate to Polish)
+POST {{host}}/flashcards/with-ai
+Content-Type: application/json
+
+{
+  "textToScan": "una herida - rana\ndañarse -\nromper la pierna - złamać nogę\nestar lleno/a - być pełnym/ą\nestar vacio/a - być pustym/ą\nevitar - unikać\nnocivo/a - szkodliwy/a\ncuidar a alguien - dbać o kogoś/opiekować się kimś\ncuidarse - dbać o siebie\nperder peso/adelgazar -\naumentar de peso/engordar -",
+  "targetLanguage": "POLISH"
+}
+
+### Create flash cards from text using AI (translate to English)
+POST {{host}}/flashcards/with-ai
+Content-Type: application/json
+
+{
+  "textToScan": "Szybki brązowy lis przeskakuje nad leniwym psem. Nauka nowego języka wymaga cierpliwości i codziennej praktyki.",
+  "targetLanguage": "ENGLISH"
+}
