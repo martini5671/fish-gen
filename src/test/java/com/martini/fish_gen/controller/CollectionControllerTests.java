@@ -64,7 +64,9 @@ public class CollectionControllerTests extends BaseIntegrationTest {
                 .expectBody()
                 .jsonPath("$.content.length()").isEqualTo(3)
                 .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
-                        ids -> assertThat(ids).containsExactlyInAnyOrder(1L, 2L, 3L));
+                        ids -> assertThat(ids).containsExactlyInAnyOrder(1L, 2L, 3L))
+                .jsonPath("$.content[*].targetLanguage").value(new ParameterizedTypeReference<List<String>>() {},
+                        languages -> assertThat(languages).containsOnly("POLISH"));
     }
 
     @Test

@@ -37,6 +37,10 @@ public class ApplicationUser {
     @Setter(value = AccessLevel.PRIVATE)
     private String roles;
 
+    @Column(nullable = false)
+    @Setter(value = AccessLevel.PRIVATE)
+    private Long aiCredits;
+
     @Getter
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FlashcardCollection> collections = new ArrayList<>();
@@ -64,5 +68,19 @@ public class ApplicationUser {
                 .collect(Collectors.joining(",")));
     }
 
+    public boolean hasEnoughAiCredits() {
+        if (aiCredits == null) {
+            return false;
+        }
+        return aiCredits > 0;
+    }
+
+    public void addAiCredits(Long aiCredits) {
+        this.aiCredits += aiCredits;
+    }
+
+    public void subtractAiCredits(Long aiCredits) {
+        this.aiCredits -= aiCredits;
+    }
 
 }

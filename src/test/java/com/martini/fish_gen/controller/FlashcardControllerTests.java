@@ -6,18 +6,24 @@ import com.martini.fish_gen.model.dao.Flashcard;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
 import com.martini.fish_gen.model.dto.GeneratedFlashcard;
+import com.martini.fish_gen.model.dto.TokenDto;
+import com.martini.fish_gen.model.enumeration.GenerationStatus;
 import com.martini.fish_gen.model.enumeration.TargetLanguage;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.repository.FlashcardRepository;
 import com.martini.fish_gen.service.FlashcardGeneratorService;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,13 +60,14 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                         .build())
                 .exchange()
                 .expectStatus()
-                .isCreated();
+                .isAccepted();
 
         List<FlashcardCollection> collections = flashcardCollectionRepository.findAll();
         assertThat(collections).hasSize(1);
-        FlashcardCollection collection = collections.getFirst();
+        FlashcardCollection collection = awaitGenerationStatus(collections.getFirst().getId(), GenerationStatus.COMPLETED);
         assertThat(collection.getName()).isEqualTo("test");
         assertThat(collection.getText()).isEqualTo(TEXT_TO_SCAN);
+        assertThat(collection.getTargetLanguage()).isEqualTo(TargetLanguage.POLISH);
         assertThat(collection.getCreatedAt()).isNotNull();
         // Looked up through the owner because the lazy user association can't be read outside a transaction
         assertThat(flashcardCollectionRepository.findByIdIsAndUser_Username(collection.getId(), TEST_USER_USERNAME))
@@ -68,10 +75,10 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .isPresent();
 
         assertThat(flashcardRepository.findAllByFlashcardCollectionIdOrderById(collection.getId()))
-                .extracting(Flashcard::getSource, Flashcard::getTarget, Flashcard::getTargetLanguage)
+                .extracting(Flashcard::getSource, Flashcard::getTarget)
                 .containsExactly(
-                        tuple("hola", "cześć", TargetLanguage.POLISH),
-                        tuple("soy", "jestem", TargetLanguage.POLISH));
+                        tuple("hola", "cześć"),
+                        tuple("soy", "jestem"));
     }
 
     @Test
@@ -88,11 +95,12 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                         .build())
                 .exchange()
                 .expectStatus()
-                .isCreated();
+                .isAccepted();
 
         List<FlashcardCollection> collections = flashcardCollectionRepository.findAll();
         assertThat(collections).hasSize(1);
         assertThat(collections.getFirst().getName()).isNotBlank().contains("_");
+        awaitGenerationStatus(collections.getFirst().getId(), GenerationStatus.COMPLETED);
         assertThat(flashcardRepository.findAll()).hasSize(1);
     }
 
@@ -111,14 +119,16 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                         .build())
                 .exchange()
                 .expectStatus()
-                .isCreated();
+                .isAccepted();
 
-        assertThat(flashcardCollectionRepository.findAll()).hasSize(1);
+        List<FlashcardCollection> collections = flashcardCollectionRepository.findAll();
+        assertThat(collections).hasSize(1);
+        awaitGenerationStatus(collections.getFirst().getId(), GenerationStatus.COMPLETED);
         assertThat(flashcardRepository.findAll()).isEmpty();
     }
 
     @Test
-    void givenGeneratorFails_whenCreateAiFlashcards_thenReturns500AndNothingIsPersisted() {
+    void givenGeneratorFails_whenCreateAiFlashcards_thenCollectionIsMarkedFailedWithoutFlashcards() {
         Mockito.when(flashcardGeneratorService.generateFlashcards(TEXT_TO_SCAN, TargetLanguage.POLISH))
                 .thenThrow(new FlashCardGenerationException("Ai agent failed to generate flashcards",
                         new RuntimeException("timeout")));
@@ -133,10 +143,36 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                         .build())
                 .exchange()
                 .expectStatus()
-                .is5xxServerError();
+                .isAccepted();
 
-        assertThat(flashcardCollectionRepository.findAll()).isEmpty();
+        // The request already succeeded, so the failure is only visible on the collection
+        List<FlashcardCollection> collections = flashcardCollectionRepository.findAll();
+        assertThat(collections).hasSize(1);
+        awaitGenerationStatus(collections.getFirst().getId(), GenerationStatus.FAILED);
         assertThat(flashcardRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void givenUserWithoutAiCredits_whenCreateAiFlashcards_thenReturns402AndNothingIsPersisted() {
+        // other-user has 0 credits in users-test-data.sql
+        TokenDto otherUserToken = login("other-user", TEST_USER_PASSWORD);
+
+        restTestClient.post()
+                .uri("/api/v1/flashcards/ai")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + otherUserToken.accessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(CreateFlashcardsDto.builder()
+                        .targetLanguage(TargetLanguage.POLISH)
+                        .textToScan(TEXT_TO_SCAN)
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.PAYMENT_REQUIRED)
+                .expectBody()
+                .jsonPath("$.title").isEqualTo("Out of AI credits");
+
+        Mockito.verifyNoInteractions(flashcardGeneratorService);
+        assertThat(flashcardCollectionRepository.findAll()).isEmpty();
     }
 
     @Test
@@ -266,8 +302,7 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .jsonPath("$[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
                         ids -> assertThat(ids).containsExactly(1L, 2L, 3L))
                 .jsonPath("$[0].source").isEqualTo("fox")
-                .jsonPath("$[0].target").isEqualTo("lis")
-                .jsonPath("$[0].targetLanguage").isEqualTo("POLISH");
+                .jsonPath("$[0].target").isEqualTo("lis");
     }
 
     @Test
@@ -331,5 +366,13 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .isBadRequest()
                 .expectBody()
                 .jsonPath("$.title").isEqualTo("Invalid parameter");
+    }
+
+    // Generation runs in FlashcardGenerationListener on another thread, after the request has returned
+    private FlashcardCollection awaitGenerationStatus(Long collectionId, GenerationStatus expectedStatus) {
+        return Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .until(() -> flashcardCollectionRepository.findById(collectionId).orElseThrow(),
+                        collection -> collection.getGenerationStatus() == expectedStatus);
     }
 }
