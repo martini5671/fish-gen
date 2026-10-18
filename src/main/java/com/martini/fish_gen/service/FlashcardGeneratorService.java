@@ -1,11 +1,9 @@
 package com.martini.fish_gen.service;
 
 import com.martini.fish_gen.exception.FlashCardGenerationException;
-import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.dto.GeneratedFlashcard;
 import com.martini.fish_gen.model.enumeration.TargetLanguage;
 import com.martini.fish_gen.repository.ApplicationUserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.ai.chat.client.ChatClient;
@@ -30,8 +28,7 @@ public class FlashcardGeneratorService {
     private final ChatClient chatClient;
     private final PromptTemplate promptTemplate;
     private final CurrentUserService currentUserService;
-    private final ApplicationUserRepository applicationUserRepository;
-    private final AiUsageService aiUsageService;
+    private final TokenUsageService aiUsageService;
 
     @Transactional
     public List<GeneratedFlashcard> generateFlashcards(String userText, TargetLanguage targetLanguage) {
@@ -53,8 +50,8 @@ public class FlashcardGeneratorService {
             throw new FlashCardGenerationException("Ai agent did not generate any flashcards");
         }
         Usage usage = Objects.requireNonNull(chatResponse.getResponse()).getMetadata().getUsage();
-        long totalTokens = usage.getTotalTokens();
-        aiUsageService.subtractAICredits(totalTokens, currentUserService.getUsername());
+        aiUsageService.subtractAICredits(usage.getTotalTokens(), currentUserService.getUsername());
+        aiUsageService.addTokenUsageEntry(usage, currentUserService.getUsername());
         return chatResponse.getEntity();
     }
 

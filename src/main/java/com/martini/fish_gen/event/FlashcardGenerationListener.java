@@ -5,7 +5,6 @@ import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.enumeration.GenerationStatus;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.service.FlashcardGeneratorService;
-import com.martini.fish_gen.service.FlashcardService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +40,8 @@ public class FlashcardGenerationListener {
                             .build())
                     .forEach(flashcardCollection::addFlashcard);
             flashcardCollection.setGenerationStatus(GenerationStatus.COMPLETED);
+            log.info("Flashcard generation request has been completed successfully for" +
+                    " flashcard collection with id: {}", event.collectionId());
             flashcardCollectionRepository.save(flashcardCollection);
         } catch (RuntimeException e) {
             // Nobody waits on this thread, so the failure is recorded on the collection for the client to see

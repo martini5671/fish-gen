@@ -1,6 +1,5 @@
 package com.martini.fish_gen.controller;
 
-import com.martini.fish_gen.model.dto.CollectionDto;
 import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
 import com.martini.fish_gen.model.dto.FlashcardDto;
 import com.martini.fish_gen.service.FlashcardService;
