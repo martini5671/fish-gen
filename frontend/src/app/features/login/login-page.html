@@ -1,0 +1,57 @@
+<main class="login">
+  <mat-card class="login-card" appearance="outlined">
+    @if (store.loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <mat-card-header>
+      <mat-card-title>Fish-gen</mat-card-title>
+      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
+    </mat-card-header>
+
+    <form (submit)="submit($event)" novalidate>
+      <mat-card-content class="fields">
+        <mat-form-field>
+          <mat-label>Username</mat-label>
+          <input matInput [formField]="loginForm.username" autocomplete="username" />
+          @if (loginForm.username().touched() && loginForm.username().invalid()) {
+            <mat-error>{{ loginForm.username().errors()[0].message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [type]="hidePassword() ? 'password' : 'text'"
+            [formField]="loginForm.password"
+            autocomplete="current-password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="hidePassword.set(!hidePassword())"
+            [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+          >
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (loginForm.password().touched() && loginForm.password().invalid()) {
+            <mat-error>{{ loginForm.password().errors()[0].message }}</mat-error>
+          }
+        </mat-form-field>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button
+          mat-flat-button
+          type="submit"
+          class="submit"
+          [disabled]="loginForm().invalid() || store.loading()"
+        >
+          Log in
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</main>

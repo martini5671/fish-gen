@@ -1,4 +1,8 @@
 package com.martini.fish_gen.model.dto;
 
-public record TokenDto(String accessToken, String tokenType, long expiresIn) {
+import jakarta.validation.constraints.NotNull;
+
+public record TokenDto(@NotNull String accessToken,
+                       @NotNull String tokenType,
+                       @NotNull long expiresIn) {
 }

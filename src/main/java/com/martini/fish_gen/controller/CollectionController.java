@@ -4,6 +4,7 @@ import com.martini.fish_gen.model.dto.CollectionDto;
 import com.martini.fish_gen.model.dto.CollectionFilter;
 import com.martini.fish_gen.model.dto.UpdateCollectionNameDto;
 import com.martini.fish_gen.service.CollectionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Collections")
 @RestController
 @RequestMapping("/api/v1/collections")
 @RequiredArgsConstructor

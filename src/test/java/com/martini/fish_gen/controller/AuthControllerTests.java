@@ -81,6 +81,18 @@ public class AuthControllerTests extends BaseIntegrationTest {
     }
 
     @Test
+    void givenNoToken_whenGetApiDocs_thenReturnsSpecWithLoginEndpoint() {
+        restTestClient.get()
+                .uri("/v3/api-docs")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.paths['/api/v1/auth/login'].post").exists()
+                .jsonPath("$.components.securitySchemes['bearer-jwt'].scheme").isEqualTo("bearer");
+    }
+
+    @Test
     void givenInvalidToken_whenCallProtectedEndpoint_thenReturns401() {
         restTestClient.get()
                 .uri("/api/v1/collections")
