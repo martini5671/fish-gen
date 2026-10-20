@@ -89,6 +89,15 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    // 402 rather than 403: the user is allowed to generate, they just need to top up their credits first
+    @ExceptionHandler(OutOfAiCreditsException.class)
+    public ProblemDetail handleOutOfAiCredits(OutOfAiCreditsException ignoredEx) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYMENT_REQUIRED,
+                "Not enough AI credits to generate flashcards");
+        problem.setTitle("Out of AI credits");
+        return problem;
+    }
+
     private static String fieldName(MessageSourceResolvable error, String parameterName) {
         return error instanceof FieldError fieldError ? fieldError.getField() : parameterName;
     }

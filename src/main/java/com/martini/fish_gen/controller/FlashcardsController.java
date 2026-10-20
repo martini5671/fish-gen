@@ -17,8 +17,9 @@ import java.util.List;
 public class FlashcardsController {
     private final FlashcardService flashCardService;
 
+    // 202: the collection is saved as PENDING and filled in asynchronously; poll its generationStatus
     @PostMapping("/ai")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     public void createAiFlashcards(@RequestBody @Valid CreateFlashcardsDto dto) {
         flashCardService.createAiFlashcards(dto);
     }
