@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthStore } from '../../core/auth/auth.store';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-login-page',
@@ -18,6 +19,7 @@ import { AuthStore } from '../../core/auth/auth.store';
     MatIconModule,
     MatInputModule,
     MatProgressBarModule,
+    RouterLink,
   ],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',

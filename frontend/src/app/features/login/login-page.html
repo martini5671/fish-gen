@@ -1,11 +1,11 @@
-<main class="login">
+<main class="login bg-aurora">
   <mat-card class="login-card" appearance="outlined">
     @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate" />
+      <mat-progress-bar mode="indeterminate"/>
     }
 
-    <mat-card-header>
-      <mat-card-title>Fish-gen</mat-card-title>
+    <mat-card-header class="login-header">
+      <mat-card-title>Flashgen</mat-card-title>
       <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
     </mat-card-header>
 
@@ -13,7 +13,7 @@
       <mat-card-content class="fields">
         <mat-form-field>
           <mat-label>Username</mat-label>
-          <input matInput [formField]="loginForm.username" autocomplete="username" />
+          <input matInput [formField]="loginForm.username" autocomplete="username"/>
           @if (loginForm.username().touched() && loginForm.username().invalid()) {
             <mat-error>{{ loginForm.username().errors()[0].message }}</mat-error>
           }
@@ -53,5 +53,9 @@
         </button>
       </mat-card-actions>
     </form>
+    <mat-card-footer class="login-footer">
+      Don't have an account yet?
+      <a style="margin-left: 2px" routerLink="/register">Register here</a>
+    </mat-card-footer>
   </mat-card>
 </main>

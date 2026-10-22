@@ -1,4 +1,3 @@
-
 // Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
 // components according to the Material 3 design spec.
@@ -6,16 +5,116 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+// App palette: electric blue accents on white surfaces with cool slate greys
+:root {
+  --fg-blue-50: #eff6ff;
+  --fg-blue-100: #dbeafe;
+  --fg-blue-500: #3b82f6;
+  --fg-blue-600: #2563eb;
+  --fg-blue-700: #1d4ed8;
+  --fg-cyan-500: #06b6d4;
+
+  --fg-white: #ffffff;
+  --fg-grey-50: #f8fafc;
+  --fg-grey-100: #f1f5f9;
+  --fg-grey-200: #e2e8f0;
+  --fg-grey-300: #cbd5e1;
+  --fg-grey-500: #64748b;
+  --fg-grey-700: #334155;
+  --fg-grey-900: #0f172a;
+
+  --fg-red-600: #dc2626;
+
+  --fg-gradient: linear-gradient(135deg, var(--fg-blue-600) 0%, var(--fg-cyan-500) 100%);
+  --fg-radius: 10px;
+  --fg-shadow-glow: 0 4px 14px rgb(37 99 235 / 0.3);
+}
+
 html {
   height: 100%;
   @include mat.theme((
     color: (
       primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
+      tertiary: mat.$cyan-palette,
     ),
-    typography: Roboto,
+    // Plus Jakarta Sans for titles and headings, Inter for body text, labels and inputs
+    typography: (
+      brand-family: ('Plus Jakarta Sans', 'Inter', sans-serif),
+      plain-family: ('Inter', system-ui, sans-serif),
+      bold-weight: 600,
+      medium-weight: 500,
+      regular-weight: 400,
+    ),
     density: 0,
   ));
+
+  // Pin the system colors to the palette so every Material component picks them up
+  @include mat.theme-overrides((
+    primary: var(--fg-blue-600),
+    on-primary: var(--fg-white),
+    primary-container: var(--fg-blue-100),
+    on-primary-container: var(--fg-blue-700),
+    surface: var(--fg-grey-50),
+    surface-container-lowest: var(--fg-white),
+    surface-container-low: var(--fg-white),
+    surface-container: var(--fg-grey-100),
+    on-surface: var(--fg-grey-900),
+    on-surface-variant: var(--fg-grey-500),
+    outline: var(--fg-grey-300),
+    outline-variant: var(--fg-grey-200),
+    error: var(--fg-red-600),
+  ));
+
+  // Inputs: white rounded boxes with a soft grey border that turns blue on hover/focus
+  @include mat.form-field-overrides((
+    outlined-container-shape: var(--fg-radius),
+    outlined-outline-color: var(--fg-grey-300),
+    outlined-hover-outline-color: var(--fg-blue-500),
+    outlined-focus-outline-color: var(--fg-blue-600),
+    outlined-focus-outline-width: 2px,
+    outlined-label-text-color: var(--fg-grey-500),
+    outlined-hover-label-text-color: var(--fg-blue-600),
+    outlined-focus-label-text-color: var(--fg-blue-600),
+    outlined-input-text-color: var(--fg-grey-900),
+    outlined-input-text-placeholder-color: var(--fg-grey-500),
+    outlined-caret-color: var(--fg-blue-600),
+  ));
+
+  // Buttons: shared rounded shape and height, blue fill for primary actions
+  @include mat.button-overrides((
+    filled-container-shape: var(--fg-radius),
+    filled-container-height: 44px,
+    filled-container-color: var(--fg-blue-600),
+    filled-label-text-color: var(--fg-white),
+    filled-label-text-weight: 500,
+    filled-disabled-container-color: var(--fg-grey-200),
+    filled-disabled-label-text-color: var(--fg-grey-500),
+    outlined-container-shape: var(--fg-radius),
+    outlined-container-height: 44px,
+    outlined-outline-color: var(--fg-grey-300),
+    outlined-label-text-color: var(--fg-blue-600),
+    text-container-shape: var(--fg-radius),
+    text-label-text-color: var(--fg-blue-600),
+    tonal-container-shape: var(--fg-radius),
+    tonal-container-color: var(--fg-blue-50),
+    tonal-label-text-color: var(--fg-blue-700),
+    protected-container-shape: var(--fg-radius),
+  ));
+
+  // Cards: white panels that lift off the grey page
+  @include mat.card-overrides((
+    outlined-container-color: var(--fg-white),
+    outlined-outline-color: var(--fg-grey-200),
+    outlined-container-shape: 16px,
+    elevated-container-color: var(--fg-white),
+    elevated-container-shape: 16px,
+    title-text-weight: 700,
+    title-text-tracking: -0.01em,
+  ));
+}
+
+.mat-mdc-card-outlined {
+  box-shadow: 0 10px 30px rgb(15 23 42 / 0.06);
 }
 
 body {
@@ -35,4 +134,33 @@ body {
   margin: 0;
   height: 100%;
 }
-/* You can add global styles to this file, and also import other style files */
+
+// White input background so fields stand out against the grey page and cards
+.mat-mdc-form-field.mat-form-field-appearance-outline .mat-mdc-text-field-wrapper {
+  background-color: var(--fg-white);
+  border-radius: var(--fg-radius);
+}
+
+// Primary filled buttons get the blue-to-cyan gradient and a glow on hover
+.mat-mdc-unelevated-button:not(:disabled) {
+  background-image: var(--fg-gradient);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+
+  &:hover {
+    box-shadow: var(--fg-shadow-glow);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+a {
+  color: var(--fg-blue-600);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

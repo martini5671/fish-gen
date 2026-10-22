@@ -4,12 +4,64 @@
   place-items: center;
   padding: 16px;
   box-sizing: border-box;
+  background-color: var(--fg-grey-50);
+}
+
+// Aurora background: soft blurred blue/cyan glows drifting slowly behind the card
+.bg-aurora {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    width: 60vmax;
+    height: 60vmax;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.45;
+    animation: aurora-drift 18s ease-in-out infinite alternate;
+  }
+
+  &::before {
+    top: -25vmax;
+    left: -15vmax;
+    background: var(--fg-blue-500);
+  }
+
+  &::after {
+    bottom: -25vmax;
+    right: -15vmax;
+    background: var(--fg-cyan-500);
+    animation-delay: -9s;
+  }
+}
+
+@keyframes aurora-drift {
+  to {
+    transform: translate(10vmax, 6vmax) scale(1.15);
+  }
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
   overflow: hidden;
+  padding: 25px;
+}
+.login-header{
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.login-footer{
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
 }
 
 .fields {
