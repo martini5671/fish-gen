@@ -12,7 +12,7 @@ import {
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { ToastrService } from 'ngx-toastr';
-import { pipe, switchMap, tap } from 'rxjs';
+import { pipe, switchMap } from 'rxjs';
 import { LoginDto } from '../../api/models/login-dto';
 import { TokenDto } from '../../api/models/token-dto';
 import { AuthService } from '../../api/services/auth.service';
@@ -23,16 +23,14 @@ type AuthState = {
   token: string | null;
   expiresAt: number | null;
   username: string | null;
-  loading: boolean;
 };
 
-type PersistedAuth = Pick<AuthState, 'token' | 'expiresAt' | 'username'>;
+type PersistedAuth = AuthState;
 
 const initialState: AuthState = {
   token: null,
   expiresAt: null,
   username: null,
-  loading: false,
 };
 
 export const AuthStore = signalStore(
@@ -51,16 +49,14 @@ export const AuthStore = signalStore(
     ) => ({
       login: rxMethod<LoginDto>(
         pipe(
-          tap(() => patchState(store, { loading: true })),
           switchMap((credentials) =>
             authService.login({ body: credentials }).pipe(
               tapResponse({
                 next: (tokenDto) => {
-                  patchState(store, { ...fromToken(tokenDto), loading: false });
+                  patchState(store, fromToken(tokenDto));
                   void router.navigateByUrl('/');
                 },
                 error: (error: HttpErrorResponse) => {
-                  patchState(store, { loading: false });
                   // error.error is the backend's ProblemDetail body
                   toastr.error(
                     error.error?.detail ?? 'Login failed, try again later',
@@ -94,21 +90,8 @@ export const AuthStore = signalStore(
   }),
 );
 
-function fromToken(tokenDto: TokenDto): PersistedAuth {
-  return {
-    token: tokenDto.accessToken,
-    expiresAt: Date.now() + tokenDto.expiresIn * 1000,
-    username: jwtSubject(tokenDto.accessToken),
-  };
-}
-
-function jwtSubject(token: string): string | null {
-  try {
-    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(payload)).sub ?? null;
-  } catch {
-    return null;
-  }
+function fromToken({ accessToken, expiresAt, username }: TokenDto): PersistedAuth {
+  return { token: accessToken, expiresAt, username };
 }
 
 function readPersistedAuth(): PersistedAuth | null {

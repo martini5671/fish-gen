@@ -5,8 +5,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthStore } from '../../core/auth/auth.store';
+import { LoaderService } from '../../core/loader/loader.service';
 import {RouterLink} from '@angular/router';
 
 @Component({
@@ -18,7 +18,6 @@ import {RouterLink} from '@angular/router';
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatProgressBarModule,
     RouterLink,
   ],
   templateUrl: './login-page.html',
@@ -27,6 +26,7 @@ import {RouterLink} from '@angular/router';
 })
 export class LoginPage {
   protected readonly store = inject(AuthStore);
+  protected readonly loader = inject(LoaderService);
 
   protected readonly credentials = signal({ username: '', password: '' });
   protected readonly loginForm = form(this.credentials, (path) => {
@@ -37,7 +37,7 @@ export class LoginPage {
 
   protected submit(event: Event): void {
     event.preventDefault();
-    if (this.loginForm().invalid() || this.store.loading()) {
+    if (this.loginForm().invalid() || this.loader.loading()) {
       return;
     }
     this.store.login(this.credentials());

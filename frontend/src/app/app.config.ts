@@ -7,12 +7,13 @@ import { provideToastr } from 'ngx-toastr';
 import { provideApiConfiguration } from './api/api-configuration';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { loaderInterceptor } from './core/loader/loader.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([loaderInterceptor, authInterceptor])),
     // Every form field in the app uses the outlined look defined in styles.scss
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
     provideToastr({

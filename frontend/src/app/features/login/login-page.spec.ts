@@ -1,12 +1,11 @@
-import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { AuthStore } from '../../core/auth/auth.store';
 import { LoginPage } from './login-page';
 
 describe('LoginPage', () => {
   let fixture: ComponentFixture<LoginPage>;
   const store = {
-    loading: signal(false),
     login: vi.fn(),
   };
 
@@ -14,7 +13,7 @@ describe('LoginPage', () => {
     store.login.mockReset();
     await TestBed.configureTestingModule({
       imports: [LoginPage],
-      providers: [{ provide: AuthStore, useValue: store }],
+      providers: [provideRouter([]), { provide: AuthStore, useValue: store }],
     }).compileComponents();
     fixture = TestBed.createComponent(LoginPage);
     await fixture.whenStable();

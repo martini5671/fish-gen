@@ -1,9 +1,5 @@
 <main class="login bg-aurora">
   <mat-card class="login-card" appearance="outlined">
-    @if (store.loading()) {
-      <mat-progress-bar mode="indeterminate"/>
-    }
-
     <mat-card-header class="login-header">
       <mat-card-title>Flashgen</mat-card-title>
       <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
@@ -47,7 +43,7 @@
           mat-flat-button
           type="submit"
           class="submit"
-          [disabled]="loginForm().invalid() || store.loading()"
+          [disabled]="loginForm().invalid() || loader.loading()"
         >
           Log in
         </button>

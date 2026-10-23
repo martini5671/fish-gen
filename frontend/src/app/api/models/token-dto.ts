@@ -3,6 +3,6 @@
 
 export interface TokenDto {
   accessToken: string;
-  expiresIn: number;
-  tokenType: string;
+  expiresAt: number;
+  username: string;
 }

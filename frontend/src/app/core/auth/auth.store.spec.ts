@@ -6,8 +6,7 @@ import { ToastrService } from 'ngx-toastr';
 import { provideApiConfiguration } from '../../api/api-configuration';
 import { AUTH_STORAGE_KEY, AuthStore } from './auth.store';
 
-// header.{"sub":"test-user"}.signature
-const TOKEN = `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub: 'test-user' }))}.sig`;
+const TOKEN = 'header.payload.signature';
 
 describe('AuthStore', () => {
   const toastr = { error: vi.fn() };
@@ -38,16 +37,18 @@ describe('AuthStore', () => {
     const store = setup();
 
     store.login({ username: 'test-user', password: 'password' });
-    expect(store.loading()).toBe(true);
     const req = http.expectOne('/api/v1/auth/login');
     expect(req.request.body).toEqual({ username: 'test-user', password: 'password' });
-    req.flush({ accessToken: TOKEN, tokenType: 'Bearer', expiresIn: 3600 });
+    req.flush({
+      accessToken: TOKEN,
+      expiresAt: Date.now() + 3_600_000,
+      username: 'test-user',
+    });
     TestBed.tick();
 
     expect(store.token()).toBe(TOKEN);
     expect(store.username()).toBe('test-user');
     expect(store.isAuthenticated()).toBe(true);
-    expect(store.loading()).toBe(false);
     expect(JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)!).token).toBe(TOKEN);
     expect(TestBed.inject(Router).navigateByUrl).toHaveBeenCalledWith('/');
   });
@@ -66,7 +67,6 @@ describe('AuthStore', () => {
     expect(toastr.error).toHaveBeenCalledWith('Invalid username or password', 'Login failed');
 
     expect(store.isAuthenticated()).toBe(false);
-    expect(store.loading()).toBe(false);
   });
 
   it('clears the session on logout', () => {

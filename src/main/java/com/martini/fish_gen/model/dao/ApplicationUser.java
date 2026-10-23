@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Builder
 @Entity
 @Table(name = "users") // "user" is a reserved word in many DBs
 @AllArgsConstructor
@@ -42,6 +43,7 @@ public class ApplicationUser {
     private Long aiCredits;
 
     @Getter
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FlashcardCollection> collections = new ArrayList<>();
 

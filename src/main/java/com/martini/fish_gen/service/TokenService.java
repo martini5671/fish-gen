@@ -32,6 +32,7 @@ public class TokenService {
 
     public TokenDto generateToken(Authentication authentication) {
         Instant now = Instant.now();
+        Instant expiresAt = now.plus(expiration);
         List<String> authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
@@ -40,11 +41,11 @@ public class TokenService {
                 .issuer(ISSUER)
                 .subject(authentication.getName())
                 .issuedAt(now)
-                .expiresAt(now.plus(expiration))
+                .expiresAt(expiresAt)
                 .claim(AUTHORITIES_CLAIM, authorities)
                 .build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build(); // must match the key type
         String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
-        return new TokenDto(token, "Bearer", expiration.toSeconds());
+        return new TokenDto(token, expiresAt.toEpochMilli(), authentication.getName());
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 public class AuthControllerTests extends BaseIntegrationTest {
 
@@ -15,8 +16,9 @@ public class AuthControllerTests extends BaseIntegrationTest {
     void givenCorrectCredentials_whenLogin_thenReturnsBearerToken() {
         TokenDto token = login(TEST_USER_USERNAME, TEST_USER_PASSWORD);
         assertThat(token.accessToken()).isNotBlank();
-        assertThat(token.tokenType()).isEqualTo("Bearer");
-        assertThat(token.expiresIn()).isEqualTo(3600);
+        assertThat(token.username()).isEqualTo(TEST_USER_USERNAME);
+        assertThat(token.expiresAt())
+                .isCloseTo(System.currentTimeMillis() + 3_600_000, within(60_000L));
     }
 
     @Test
