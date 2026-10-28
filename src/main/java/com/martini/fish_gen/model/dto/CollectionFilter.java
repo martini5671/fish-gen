@@ -1,15 +1,13 @@
 package com.martini.fish_gen.model.dto;
 
-import org.springframework.format.annotation.DateTimeFormat;
+import com.martini.fish_gen.model.enumeration.CollectionSort;
 
-import java.time.LocalDateTime;
-
-// Both bounds are inclusive, e.g. createdFrom=2026-09-27T08:00:00&createdTo=2026-09-30T23:59:59
+// e.g. ?name=animals&sort=NAME_ASC; a missing sort means NEWEST
 public record CollectionFilter(
         String name,
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-        LocalDateTime createdFrom,
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-        LocalDateTime createdTo
+        CollectionSort sort
 ) {
+    public CollectionSort sortOrDefault() {
+        return sort != null ? sort : CollectionSort.NEWEST;
+    }
 }

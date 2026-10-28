@@ -12,6 +12,18 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Generated API client
+
+Services and models in `src/app/api/` are generated from the backend's OpenAPI spec. With the backend
+running, regenerate them with:
+
+```bash
+npm run generate:api
+```
+
+See [docs/api-client.md](docs/api-client.md) for the full guide: adding a new service, naming rules,
+troubleshooting and the backend annotations that shape the generated code.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

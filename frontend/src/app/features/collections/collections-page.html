@@ -1,0 +1,77 @@
+<h1 class="title" id="collections-title">Your collections</h1>
+
+<section class="collections" aria-labelledby="collections-title">
+  <div class="toolbar">
+    <mat-form-field class="sort-field" subscriptSizing="dynamic">
+      <mat-label>Sort by</mat-label>
+      <mat-select [value]="store.sort()" (valueChange)="store.setSort($event)">
+        @for (option of sortOptions; track option.value) {
+          <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table mat-table [dataSource]="store.collections()" class="collections-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let collection" class="name-cell">{{ collection.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="targetLanguage">
+          <th mat-header-cell *matHeaderCellDef>Language</th>
+          <td mat-cell *matCellDef="let collection">{{ languageLabel(collection) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="generationStatus">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let collection">
+            <span [class]="statusClass(collection)">
+              <span class="status-dot" aria-hidden="true"></span>
+              {{ statusLabel(collection) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef>Created</th>
+          <td mat-cell *matCellDef="let collection" class="muted">
+            {{ collection.createdAt | date: 'mediumDate' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+          <td mat-cell *matCellDef="let collection" class="actions-cell">
+            <!-- TODO: open a rename dialog that calls CollectionsService.updateCollectionNameById -->
+            <button matIconButton [attr.aria-label]="'Rename ' + collection.name">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <!-- TODO: confirm, then call CollectionsService.delete and reload the page -->
+            <button matIconButton [attr.aria-label]="'Delete ' + collection.name">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+
+        <tr class="mat-mdc-row" *matNoDataRow>
+          <td class="empty" [attr.colspan]="columns.length">You don't have any collections yet.</td>
+        </tr>
+      </table>
+    </div>
+
+    <mat-paginator
+      [length]="store.totalElements()"
+      [pageIndex]="store.pageIndex()"
+      [pageSize]="store.pageSize()"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPage($event)"
+      aria-label="Choose a page of collections"
+    />
+  </div>
+</section>

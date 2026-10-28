@@ -42,3 +42,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Generated API client (ng-openapi-gen)
+/src/app/api/

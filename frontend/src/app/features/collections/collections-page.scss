@@ -1,0 +1,136 @@
+@use '@angular/material' as mat;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.collections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.sort-field {
+  width: 200px;
+}
+
+// White card around the table and paginator, as in the mock
+.table-card {
+  overflow: hidden;
+  background: var(--fg-white);
+  border: 1px solid var(--fg-grey-200);
+  border-radius: 14px;
+}
+
+// Wide tables scroll inside the card on phones instead of stretching the page
+.table-scroll {
+  overflow-x: auto;
+}
+
+.collections-table {
+  @include mat.table-overrides((
+    background-color: var(--fg-white),
+    header-headline-color: var(--fg-grey-500),
+    header-headline-size: 12px,
+    header-headline-weight: 600,
+    header-container-height: 48px,
+    row-item-container-height: 60px,
+    row-item-label-text-color: var(--fg-grey-700),
+    row-item-label-text-size: 14px,
+    row-item-outline-color: var(--fg-grey-100),
+  ));
+
+  width: 100%;
+  min-width: 680px;
+
+  th {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  th,
+  td {
+    padding: 0 20px;
+  }
+}
+
+.name-cell {
+  font-weight: 600;
+  color: var(--fg-grey-900);
+}
+
+.muted {
+  color: var(--fg-grey-500);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+// Text colors pass 4.5:1 on white; the label carries the meaning, the color only supports it
+.status-completed {
+  color: #166534;
+}
+
+.status-pending {
+  color: #92400e;
+}
+
+.status-failed {
+  color: #991b1b;
+}
+
+.actions-header,
+.actions-cell {
+  text-align: right;
+}
+
+.actions-cell {
+  white-space: nowrap;
+
+  button {
+    @include mat.icon-button-overrides((
+      icon-color: var(--fg-grey-500),
+    ));
+  }
+}
+
+.empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--fg-grey-500);
+}
+
+mat-paginator {
+  @include mat.paginator-overrides((
+    container-background-color: var(--fg-white),
+  ));
+
+  border-top: 1px solid var(--fg-grey-200);
+}

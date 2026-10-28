@@ -2,6 +2,7 @@ package com.martini.fish_gen.service;
 
 import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.dao.TokenUsage;
+import com.martini.fish_gen.model.dto.UserTokenUsage;
 import com.martini.fish_gen.repository.ApplicationUserRepository;
 import com.martini.fish_gen.repository.TokenUsageRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,6 +19,7 @@ public class TokenUsageService {
     private final ChatModel chatModel;
     private final ApplicationUserRepository applicationUserRepository;
     private final TokenUsageRepository tokenUsageRepository;
+    private final CurrentUserService currentUserService;
 
     @Transactional
     public void subtractAICredits(long creditsToSubtract, String username) {
@@ -38,5 +40,12 @@ public class TokenUsageService {
                         .outputTokens(usage.getCompletionTokens())
                         .model(chatModel.getOptions().getModel())
                 .build());
+    }
+
+    @Transactional(readOnly = true)
+    public UserTokenUsage getTokenUsage() {
+        ApplicationUser applicationUser = applicationUserRepository.findByUsername(currentUserService.getUsername())
+                .orElseThrow(EntityNotFoundException::new);
+        return new UserTokenUsage(applicationUser.getAiCredits());
     }
 }

@@ -1,31 +1,36 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from '../../core/auth/auth.store';
 
-// Placeholder landing page; collections will live here
+// Shell for every page behind login: the navbar stays at the top, child routes render below it
 @Component({
   selector: 'app-home-page',
-  imports: [MatButtonModule, MatToolbarModule],
-  template: `
-    <mat-toolbar>
-      <span>Fish-gen</span>
-      <span class="spacer"></span>
-      <span class="user">Logged in as {{ store.username() }}</span>
-      <button mat-button (click)="store.logout()">Log out</button>
-    </mat-toolbar>
-  `,
-  styles: `
-    .spacer {
-      flex: 1;
-    }
-    .user {
-      font: var(--mat-sys-body-medium);
-      margin-inline-end: 8px;
-    }
-  `,
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
+    MatToolbarModule,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+  ],
+  templateUrl: './home-page.html',
+  styleUrl: './home-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage {
-  protected readonly store = inject(AuthStore);
+  protected readonly authStore = inject(AuthStore);
+
+  protected readonly navLinks = [
+    { path: '/collections', label: 'Collections' },
+    { path: '/profile', label: 'Profile' },
+  ];
+
+  protected readonly initials = computed(() =>
+    (this.authStore.username() ?? '').slice(0, 2).toUpperCase(),
+  );
 }

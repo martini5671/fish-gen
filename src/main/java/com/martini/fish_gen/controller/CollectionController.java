@@ -5,11 +5,11 @@ import com.martini.fish_gen.model.dto.CollectionFilter;
 import com.martini.fish_gen.model.dto.UpdateCollectionNameDto;
 import com.martini.fish_gen.service.CollectionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Collections")
@@ -19,13 +19,13 @@ import org.springframework.web.bind.annotation.*;
 public class CollectionController {
     private final CollectionService collectionService;
 
+    // page and size are plain params instead of a Pageable, so clients can only sort by a CollectionSort option
     @GetMapping
-    public Page<CollectionDto> getCollections(CollectionFilter collectionFilter,
-                                              @PageableDefault(sort = "createdAt",
-                                                      direction = Sort.Direction.DESC)
-                                              Pageable pageable
+    public Page<CollectionDto> getCollections(@ParameterObject CollectionFilter collectionFilter,
+                                              @RequestParam(defaultValue = "0") @Min(0) int page,
+                                              @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
     ) {
-        return collectionService.getCollections(collectionFilter, pageable)
+        return collectionService.getCollections(collectionFilter, page, size)
                 .map(CollectionDto::from);
     }
 

@@ -3,6 +3,7 @@ package com.martini.fish_gen.configuration;
 import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.enumeration.Role;
 import com.martini.fish_gen.repository.ApplicationUserRepository;
+import com.martini.fish_gen.repository.TokenUsageRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,12 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-public class ApplicationUserInitializer implements CommandLineRunner {
+public class AdminUserInitializer implements CommandLineRunner {
 
     private static final String ADMIN_USERNAME = "koczot.martini@gmail.com";
 
     private final PasswordEncoder passwordEncoder;
     private final ApplicationUserRepository applicationUserRepository;
+
     @Value("${admin.password}")
     private String adminPassword;
 

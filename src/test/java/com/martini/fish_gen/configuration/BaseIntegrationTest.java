@@ -19,6 +19,8 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 
 @AutoConfigureRestTestClient
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
+// Cleanup also runs first: ApplicationUserInitializer creates the admin user on startup, which would take id 1
+@Sql(scripts = "/sql/cleanup.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/users-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "/sql/cleanup.sql", executionPhase = AFTER_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

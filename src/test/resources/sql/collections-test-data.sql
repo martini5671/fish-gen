@@ -1,8 +1,8 @@
 -- 13 collections, 12 owned by test-user: enough for more than one page with size=5 (pages 0, 1, 2).
 -- Names cover case-insensitive matching ("Red" / "red") and literal LIKE wildcards ("%" and "_").
 -- Rows 1-12 belong to test-user (id 1) from users-test-data.sql; row 13 belongs to other-user (id 2) and matches
--- both the "red" name and the late-September date filters, so it checks that searches are scoped to the owner.
--- created_at values sit on day boundaries in September 2026 to test the createdFrom / createdTo range.
+-- the "red" name filter and sits between test-user's dates, so it checks that searches and sorting are scoped to the owner.
+-- created_at values are all distinct, so NEWEST / OLDEST give one fixed order.
 INSERT INTO flashcard_collection (id, name, text, target_language, created_at, updated_at, user_id)
 VALUES (1, 'Red_fox', 'The red fox jumps over the lazy dog.', 'POLISH', '2026-09-01 00:00:00', NULL, 1),
        (2, 'red panda', 'Red pandas live in the Himalayas.', 'POLISH', '2026-09-02 12:30:00', '2026-09-03 08:00:00', 1),

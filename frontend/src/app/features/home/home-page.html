@@ -1,0 +1,45 @@
+<mat-toolbar class="top-nav-bar">
+  <div class="top-nav-bar-content">
+    <a class="brand" routerLink="/collections">
+      <span class="brand-logo"><mat-icon>style</mat-icon></span>
+      <span class="brand-name">Flashgen</span>
+    </a>
+
+    <nav
+      mat-tab-nav-bar
+      mat-stretch-tabs="false"
+      class="nav-links"
+      [tabPanel]="tabPanel"
+      aria-label="Main"
+    >
+      @for (link of navLinks; track link.path) {
+        <a
+          mat-tab-link
+          [routerLink]="link.path"
+          routerLinkActive
+          #rla="routerLinkActive"
+          [active]="rla.isActive"
+        >
+          {{ link.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="user">
+      <div class="user-details">
+        <span class="user-name">{{ authStore.username() }}</span>
+        <span class="user-credits">1,000 credits</span>
+      </div>
+      <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+      <button matIconButton class="logout" aria-label="Log out" (click)="authStore.logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-toolbar>
+
+<mat-tab-nav-panel #tabPanel>
+  <main class="page-content">
+    <router-outlet />
+  </main>
+</mat-tab-nav-panel>

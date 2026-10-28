@@ -40,6 +40,7 @@ public class ApplicationUser {
 
     @Column(nullable = false)
     @Setter(value = AccessLevel.PRIVATE)
+    @Getter
     private Long aiCredits;
 
     @Getter

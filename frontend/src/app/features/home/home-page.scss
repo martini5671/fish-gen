@@ -1,0 +1,174 @@
+@use '@angular/material' as mat;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--fg-grey-50);
+}
+
+// White bar with a hairline bottom border; the content is centered to the page width
+.top-nav-bar {
+  @include mat.toolbar-overrides((
+    container-background-color: var(--fg-white),
+    container-text-color: var(--fg-grey-900),
+    standard-height: 64px,
+  ));
+
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--fg-grey-200);
+}
+
+.top-nav-bar-content {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+  height: 100%;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--fg-grey-900);
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--fg-blue-600);
+  color: var(--fg-white);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.brand-name {
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+// Underlined tabs that fill the bar's height, as in the mock
+.nav-links {
+  @include mat.tabs-overrides((
+    container-height: 64px,
+    active-indicator-color: var(--fg-blue-600),
+    active-indicator-height: 3px,
+    active-focus-indicator-color: var(--fg-blue-600),
+    active-hover-indicator-color: var(--fg-blue-600),
+    active-label-text-color: var(--fg-grey-900),
+    active-focus-label-text-color: var(--fg-grey-900),
+    active-hover-label-text-color: var(--fg-grey-900),
+    inactive-label-text-color: var(--fg-grey-500),
+    inactive-hover-label-text-color: var(--fg-grey-900),
+    label-text-font: Inter,
+    label-text-size: 15px,
+    label-text-weight: 600,
+    divider-height: 0,
+  ));
+
+  flex: 1;
+  align-self: stretch;
+
+  a:hover {
+    text-decoration: none;
+  }
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-credits {
+  font-size: 12px;
+  color: var(--fg-grey-500);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fg-blue-100);
+  color: var(--fg-blue-700);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.logout {
+  @include mat.icon-button-overrides((
+    icon-color: var(--fg-grey-700),
+    state-layer-size: 44px,
+  ));
+
+  border: 1px solid var(--fg-grey-200);
+  border-radius: var(--fg-radius);
+}
+
+.page-content {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px 56px;
+}
+
+// Phones: drop the brand name and user text so the tabs keep their room
+@media (max-width: 640px) {
+  .top-nav-bar {
+    padding: 0 12px;
+  }
+
+  .top-nav-bar-content {
+    gap: 12px;
+  }
+
+  .brand-name,
+  .user-details,
+  .avatar {
+    display: none;
+  }
+
+  .nav-links .mat-mdc-tab-link {
+    min-width: 0;
+    padding: 0 12px;
+  }
+
+  .user {
+    gap: 8px;
+  }
+
+  .page-content {
+    padding: 24px 16px 40px;
+  }
+}

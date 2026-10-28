@@ -29,22 +29,102 @@ public class CollectionControllerTests extends BaseIntegrationTest {
 
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
-    void givenCorrectDateFilter_whenGetCollections_shouldReturnFilteredCollections() {
+    void givenNoSort_whenGetCollections_shouldReturnNewestFirst() {
         authenticatedRestTestClient().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/collections")
-                        .queryParam("page", 0)
                         .queryParam("size", 5)
-                        .queryParam("createdFrom", "2026-09-27T00:00:00")
-                        .queryParam("createdTo", "2026-09-30T23:59:59")
                         .build())
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectBody()
-                .jsonPath("$.content.length()").isEqualTo(2)
                 .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
-                        ids -> assertThat(ids).containsExactlyInAnyOrder(11L, 12L));
+                        ids -> assertThat(ids).containsExactly(12L, 11L, 10L, 9L, 8L));
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenOldestSort_whenGetCollections_shouldReturnOldestFirst() {
+        authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/collections")
+                        .queryParam("size", 5)
+                        .queryParam("sort", "OLDEST")
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
+                        ids -> assertThat(ids).containsExactly(1L, 2L, 3L, 4L, 5L));
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenNameSort_whenGetCollections_shouldReturnNamesAlphabeticallyIgnoringCase() {
+        // Only the first page is asserted: "Red_fox" vs "red panda" depends on the database collation
+        authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/collections")
+                        .queryParam("size", 5)
+                        .queryParam("sort", "NAME_ASC")
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.content[*].name").value(new ParameterizedTypeReference<List<String>>() {},
+                        names -> assertThat(names).containsExactly(
+                                "100% useful phrases",
+                                "Animals_and_colors",
+                                "Business English",
+                                "Empty collection",
+                                "Green turtle"));
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenLastPage_whenGetCollections_shouldReturnRemainingOwnCollections() {
+        // 12 own collections in pages of 5: the third page holds the 2 oldest; other-user's collection never counts
+        authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/collections")
+                        .queryParam("page", 2)
+                        .queryParam("size", 5)
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.totalElements").isEqualTo(12)
+                .jsonPath("$.totalPages").isEqualTo(3)
+                .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
+                        ids -> assertThat(ids).containsExactly(2L, 1L));
+    }
+
+    @Test
+    void givenUnknownSort_whenGetCollections_shouldReturn400() {
+        authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/collections")
+                        .queryParam("sort", "createdAt")
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isBadRequest();
+    }
+
+    @Test
+    void givenTooLargePageSize_whenGetCollections_shouldReturn400() {
+        authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/collections")
+                        .queryParam("size", 101)
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isBadRequest();
     }
 
 
@@ -71,43 +151,19 @@ public class CollectionControllerTests extends BaseIntegrationTest {
 
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
-    void givenFilterWithNameAndDate_whenGetCollections_shouldReturnFilteredCollections() {
+    void givenFilterWithNameAndSort_whenGetCollections_shouldReturnMatchesInThatOrder() {
         authenticatedRestTestClient().get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/collections")
-                        .queryParam("page", 0)
-                        .queryParam("size", 5)
                         .queryParam("name", "RED")
-                        .queryParam("createdFrom", "2026-09-05T00:00:00")
+                        .queryParam("sort", "OLDEST")
                         .build())
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectBody()
-                .jsonPath("$.content.length()").isEqualTo(1)
                 .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
-                        ids -> assertThat(ids).containsExactlyInAnyOrder(3L));
-    }
-
-    @Test
-    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
-    void givenDateTimeFilter_whenGetCollections_shouldApplyTimeOfDayWithInclusiveBounds() {
-        // Bounds sit exactly on collections 5 (09-10 23:59:59) and 6 (09-11 00:00:00); 4 from the same day as 5 is excluded by its time
-        authenticatedRestTestClient().get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/v1/collections")
-                        .queryParam("page", 0)
-                        .queryParam("size", 5)
-                        .queryParam("createdFrom", "2026-09-10T23:59:59")
-                        .queryParam("createdTo", "2026-09-11T00:00:00")
-                        .build())
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody()
-                .jsonPath("$.content.length()").isEqualTo(2)
-                .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
-                        ids -> assertThat(ids).containsExactlyInAnyOrder(5L, 6L));
+                        ids -> assertThat(ids).containsExactly(1L, 2L, 3L));
     }
 
     @Test

@@ -7,7 +7,7 @@ import com.martini.fish_gen.util.LikePatternUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +19,11 @@ public class CollectionService {
     private final CurrentUserService currentUserService;
 
     @Transactional(readOnly = true)
-    public Page<FlashcardCollection> getCollections(CollectionFilter filter, Pageable pageable) {
+    public Page<FlashcardCollection> getCollections(CollectionFilter filter, int page, int size) {
         return flashcardCollectionRepository.search(
                 currentUserService.getUsername(),
                 LikePatternUtils.containsIgnoreCase(filter.name()),
-                filter.createdFrom(),
-                filter.createdTo(),
-                pageable);
+                PageRequest.of(page, size, filter.sortOrDefault().toSort()));
     }
 
     @Transactional
