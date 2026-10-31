@@ -28,7 +28,7 @@
     <div class="user">
       <div class="user-details">
         <span class="user-name">{{ authStore.username() }}</span>
-        <span class="user-credits">1,000 credits</span>
+        <span class="user-credits">Credits: {{tokenStore.aiCredits()}}</span>
       </div>
       <span class="avatar" aria-hidden="true">{{ initials() }}</span>
       <button matIconButton class="logout" aria-label="Log out" (click)="authStore.logout()">

@@ -19,15 +19,38 @@
   gap: 16px;
 }
 
-.toolbar {
+// Search and sort on the left, the primary action on the right; wraps on narrow screens
+.collections-toolbar {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  // Compact 40px fields without floating labels, as in the mock
+  @include mat.form-field-density(-4);
+}
+
+.search-field {
+  width: 220px;
+  max-width: 100%;
+}
+
 .sort-field {
-  width: 200px;
+  width: 170px;
+}
+
+.new-button {
+  padding: 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: var(--fg-shadow-glow);
 }
 
 // White card around the table and paginator, as in the mock

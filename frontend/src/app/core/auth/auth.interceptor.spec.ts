@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { authInterceptor } from './auth.interceptor';
-import { AuthStore } from './auth.store';
+import { AuthStore } from '../../state/auth.store';
 
 describe('authInterceptor', () => {
   const store = { token: signal<string | null>(null), logout: vi.fn() };

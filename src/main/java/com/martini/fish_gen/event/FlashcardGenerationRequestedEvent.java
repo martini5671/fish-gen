@@ -13,6 +13,8 @@ public record FlashcardGenerationRequestedEvent(
         @NotNull
         String textToScan,
         @NotNull
-        TargetLanguage targetLanguage
+        TargetLanguage targetLanguage,
+        @NotNull
+        String username
 ) {
 }

@@ -28,6 +28,7 @@
   --fg-gradient: linear-gradient(135deg, var(--fg-blue-600) 0%, var(--fg-cyan-500) 100%);
   --fg-radius: 10px;
   --fg-shadow-glow: 0 4px 14px rgb(37 99 235 / 0.3);
+  --fg-shadow-card: 0 5px 14px rgb(51 102 255 / 0.24);
 }
 
 html {
@@ -101,6 +102,12 @@ html {
     protected-container-shape: var(--fg-radius),
   ));
 
+  // Dialogs: white, rounded panels as in the mock
+  @include mat.dialog-overrides((
+    container-color: var(--fg-white),
+    container-shape: 16px,
+  ));
+
   // Cards: white panels that lift off the grey page
   @include mat.card-overrides((
     outlined-container-color: var(--fg-white),
@@ -108,13 +115,13 @@ html {
     outlined-container-shape: 16px,
     elevated-container-color: var(--fg-white),
     elevated-container-shape: 16px,
+    // Same soft blue shadow on every card appearance
+    elevated-container-elevation: var(--fg-shadow-card),
+    outlined-container-elevation: var(--fg-shadow-card),
+    filled-container-elevation: var(--fg-shadow-card),
     title-text-weight: 700,
     title-text-tracking: -0.01em,
   ));
-}
-
-.mat-mdc-card-outlined {
-  box-shadow: 0 10px 30px rgb(15 23 42 / 0.06);
 }
 
 body {
@@ -164,3 +171,20 @@ a {
     text-decoration: underline;
   }
 }
+
+@include mat.option-overrides((
+  label-text-color: var(--fg-grey-900),
+  label-text-size: 14px,
+  label-text-weight: 400,
+  hover-state-layer-color: var(--fg-blue-50),
+  focus-state-layer-color: var(--fg-blue-50),
+  selected-state-layer-color: var(--fg-blue-100),
+  selected-state-label-text-color: var(--fg-blue-700),
+));
+
+@include mat.select-overrides((
+  panel-background-color: var(--fg-white),
+));
+@include mat.autocomplete-overrides((
+  background-color: var(--fg-white),
+));

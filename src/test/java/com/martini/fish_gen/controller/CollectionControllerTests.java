@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.util.List;
+import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -252,6 +254,74 @@ public class CollectionControllerTests extends BaseIntegrationTest {
 
         assertThat(flashcardCollectionRepository.findById(OTHER_USER_COLLECTION_ID)).isPresent();
         assertThat(flashcardRepository.findAllByFlashcardCollectionIdOrderById(OTHER_USER_COLLECTION_ID)).hasSize(1);
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenOwnCollectionIds_whenGetCollectionStatus_shouldReturnStatusOfEach() {
+        getCollectionStatus(List.of(10L, 11L, 12L))
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(3)
+                .jsonPath("$[?(@.collectionId == 10)].generationStatus").isEqualTo("COMPLETED")
+                .jsonPath("$[?(@.collectionId == 11)].generationStatus").isEqualTo("PENDING")
+                .jsonPath("$[?(@.collectionId == 12)].generationStatus").isEqualTo("FAILED");
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenUnknownCollectionId_whenGetCollectionStatus_shouldReturnOnlyExistingOnes() {
+        getCollectionStatus(List.of(1L, 999L))
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$[*].collectionId").value(new ParameterizedTypeReference<List<Long>>() {},
+                        ids -> assertThat(ids).containsExactly(1L));
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenCollectionOfOtherUser_whenGetCollectionStatus_shouldNotReturnIt() {
+        getCollectionStatus(List.of(1L, OTHER_USER_COLLECTION_ID))
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$[*].collectionId").value(new ParameterizedTypeReference<List<Long>>() {},
+                        ids -> assertThat(ids).containsExactly(1L));
+    }
+
+    @Test
+    void givenNoCollectionIds_whenGetCollectionStatus_shouldReturn400() {
+        getCollectionStatus(List.of())
+                .expectStatus()
+                .isBadRequest();
+    }
+
+    @Test
+    void givenEmptyIdsParam_whenGetCollectionStatus_shouldReturn400() {
+        authenticatedRestTestClient().get()
+                .uri("/api/v1/collections/status?ids=")
+                .exchange()
+                .expectStatus()
+                .isBadRequest();
+    }
+
+    @Test
+    void givenMoreThan100CollectionIds_whenGetCollectionStatus_shouldReturn400() {
+        getCollectionStatus(LongStream.rangeClosed(1, 101).boxed().toList())
+                .expectStatus()
+                .isBadRequest();
+    }
+
+    // Sends the ids as a repeated query param (?ids=1&ids=2), the same way the Angular client does
+    private RestTestClient.ResponseSpec getCollectionStatus(List<Long> collectionIds) {
+        return authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/collections/status")
+                        .queryParam("ids", collectionIds.toArray())
+                        .build())
+                .exchange();
     }
 
     @Test

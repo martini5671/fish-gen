@@ -11,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CollectionService {
@@ -41,5 +43,11 @@ public class CollectionService {
     private FlashcardCollection findOwnedCollection(Long id) {
         return flashcardCollectionRepository.findByIdIsAndUser_Username(id, currentUserService.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Collection with id " + id + " not found"));
+    }
+
+    // Ids of other users' collections are silently left out, same as ids that don't exist
+    @Transactional(readOnly = true)
+    public List<FlashcardCollection> getOwnedCollectionsByIds(List<Long> ids) {
+        return flashcardCollectionRepository.findAllByIdInAndUser_Username(ids, currentUserService.getUsername());
     }
 }

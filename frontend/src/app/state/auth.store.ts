@@ -13,9 +13,9 @@ import {
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { ToastrService } from 'ngx-toastr';
 import { pipe, switchMap } from 'rxjs';
-import { LoginDto } from '../../api/models/login-dto';
-import { TokenDto } from '../../api/models/token-dto';
-import { AuthService } from '../../api/services/auth.service';
+import { LoginDto } from '../api/models/login-dto';
+import { TokenDto } from '../api/models/token-dto';
+import { AuthService } from '../api/services/auth.service';
 
 export const AUTH_STORAGE_KEY = 'fish-gen.auth';
 

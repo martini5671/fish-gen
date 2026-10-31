@@ -1,16 +1,18 @@
 package com.martini.fish_gen.controller;
 
-import com.martini.fish_gen.model.dto.CollectionDto;
-import com.martini.fish_gen.model.dto.CollectionFilter;
-import com.martini.fish_gen.model.dto.UpdateCollectionNameDto;
+import com.martini.fish_gen.model.dto.*;
 import com.martini.fish_gen.service.CollectionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Collections")
 @RestController
@@ -27,6 +29,16 @@ public class CollectionController {
     ) {
         return collectionService.getCollections(collectionFilter, page, size)
                 .map(CollectionDto::from);
+    }
+
+    // ids go in the query (?ids=1&ids=2) because browsers and HttpClient drop the body of a GET request
+    @GetMapping("/status")
+    public List<FlashcardCollectionStatusDto> getCollectionStatus(
+            @RequestParam @NotEmpty @Size(max = 100) List<Long> ids) {
+        return collectionService.getOwnedCollectionsByIds(ids)
+                .stream()
+                .map(FlashcardCollectionStatusDto::from)
+                .toList();
     }
 
     @DeleteMapping("/{id}")

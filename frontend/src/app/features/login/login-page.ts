@@ -5,7 +5,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
-import {AuthStore} from '../../core/auth/auth.store';
+import {AuthStore} from '../../state/auth.store';
 import {LoaderService} from '../../core/loader/loader.service';
 import {RouterLink} from '@angular/router';
 
@@ -36,7 +36,7 @@ export class LoginPage {
 
   protected submit(event: Event): void {
     event.preventDefault();
-    if (this.loginForm().invalid() || this.loader.loading()) {
+    if (this.loginForm().invalid() || this.loader.busy()) {
       return;
     }
     this.store.login(this.credentials());

@@ -2,7 +2,8 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CollectionDto } from '../../api/models/collection-dto';
 import { CollectionsPage } from './collections-page';
-import { CollectionsStore } from './collections.store';
+import { CollectionsStore } from '../../state/collections.store';
+import { TokenUsageStore } from '../../state/token-usage.store';
 
 const COLLECTIONS: CollectionDto[] = [
   {
@@ -26,17 +27,24 @@ describe('CollectionsPage', () => {
   const store = {
     collections: signal<CollectionDto[]>([]),
     totalElements: signal(0),
+    name: signal(''),
     sort: signal('NEWEST'),
     pageIndex: signal(0),
     pageSize: signal(10),
+    setName: vi.fn(),
     setSort: vi.fn(),
     setPage: vi.fn(),
+    reload: vi.fn(),
   };
+  const tokenUsageStore = { loadUsage: vi.fn() };
 
   async function render(collections: CollectionDto[]): Promise<HTMLElement> {
     store.collections.set(collections);
     store.totalElements.set(collections.length);
     // The page provides its own store, so the mock replaces it at component level
+    TestBed.configureTestingModule({
+      providers: [{ provide: TokenUsageStore, useValue: tokenUsageStore }],
+    });
     TestBed.overrideComponent(CollectionsPage, {
       set: { providers: [{ provide: CollectionsStore, useValue: store }] },
     });
@@ -46,6 +54,7 @@ describe('CollectionsPage', () => {
   }
 
   beforeEach(() => {
+    store.setName.mockReset();
     store.setSort.mockReset();
     store.setPage.mockReset();
   });
@@ -57,14 +66,36 @@ describe('CollectionsPage', () => {
     expect(rows.length).toBe(2);
     expect(rows[0].textContent).toContain('Kitchen vocabulary');
     expect(rows[0].textContent).toContain('English');
-    expect(rows[0].textContent).toContain('Ready');
-    expect(rows[1].textContent).toContain('Generating');
+    expect(rows[0].textContent).toContain('Completed');
+    expect(rows[1].textContent).toContain('Pending');
   });
 
   it('shows an empty message when there are no collections', async () => {
     const page = await render([]);
 
     expect(page.querySelector('.empty')?.textContent).toContain("You don't have any collections yet.");
+  });
+
+  it('searches by the typed name once typing pauses', async () => {
+    const page = await render(COLLECTIONS);
+    // Fake timers only after render, so whenStable is not stuck waiting on them
+    vi.useFakeTimers();
+    try {
+      const input = page.querySelector<HTMLInputElement>('input[type="search"]')!;
+
+      input.value = 'kit';
+      input.dispatchEvent(new Event('input'));
+      input.value = 'kitchen ';
+      input.dispatchEvent(new Event('input'));
+      expect(store.setName).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(300);
+
+      expect(store.setName).toHaveBeenCalledTimes(1);
+      expect(store.setName).toHaveBeenCalledWith('kitchen');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('asks the store for the next page when the paginator moves', async () => {

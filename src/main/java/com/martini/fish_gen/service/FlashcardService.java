@@ -59,6 +59,7 @@ public class FlashcardService {
                         .collectionId(flashcardCollection.getId())
                         .textToScan(dto.textToScan())
                         .targetLanguage(dto.targetLanguage())
+                        .username(applicationUser.getUsername())
                         .build());
     }
 

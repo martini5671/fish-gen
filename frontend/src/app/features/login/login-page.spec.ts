@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AuthStore } from '../../core/auth/auth.store';
+import { AuthStore } from '../../state/auth.store';
 import { LoginPage } from './login-page';
 
 describe('LoginPage', () => {

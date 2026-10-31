@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthStore } from './auth.store';
+  import { AuthStore } from '../../state/auth.store';
 
 // A guard runs before a route opens. Returning true lets the user in;
 // returning a UrlTree sends them to that URL instead.

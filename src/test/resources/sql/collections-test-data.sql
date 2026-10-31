@@ -35,6 +35,10 @@ VALUES (1, 1, 'fox', 'lis'),
        (14, 9, 'proszę', 'please'),
        (15, 13, 'secret', 'sekret');
 
+-- Every collection defaults to COMPLETED; these two cover the other generation statuses.
+UPDATE flashcard_collection SET generation_status = 'PENDING' WHERE id = 11;
+UPDATE flashcard_collection SET generation_status = 'FAILED' WHERE id = 12;
+
 -- Rows above use explicit ids, so move the identity sequences past them.
 -- Otherwise entities saved during a test would collide with id 1, 2, ...
 SELECT setval(pg_get_serial_sequence('flashcard_collection', 'id'), (SELECT MAX(id) FROM flashcard_collection));

@@ -1,0 +1,61 @@
+<div class="header">
+  <div class="heading">
+    <h2 mat-dialog-title class="title">Create a new collection</h2>
+    <p class="subtitle">
+      Paste your text, choose a language and click "Generate flashcards".
+    </p>
+  </div>
+  <button matIconButton mat-dialog-close type="button" class="close" aria-label="Close">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<form (submit)="submit($event)" novalidate>
+  <mat-dialog-content class="fields">
+    <mat-form-field class="text-field">
+      <mat-label>Text</mat-label>
+      <textarea
+        matInput
+        rows="8"
+        placeholder="Paste an article, lecture notes or a list of words…"
+        [formField]="createForm.textToScan"
+      ></textarea>
+      @if (createForm.textToScan().touched() && createForm.textToScan().invalid()) {
+        <mat-error>{{ createForm.textToScan().errors()[0].message }}</mat-error>
+      } @else {
+        <mat-hint>{{ textMinLength }}–{{ textMaxLength }} characters</mat-hint>
+      }
+      <mat-hint align="end">{{ model().textToScan.length }} / {{ textMaxLength }}</mat-hint>
+    </mat-form-field>
+
+    <div class="row">
+      <mat-form-field class="name-field">
+        <mat-label>Collection name (optional)</mat-label>
+        <input
+          matInput
+          placeholder="Generated from the text if left empty"
+          [formField]="createForm.collectionName"
+        />
+        @if (createForm.collectionName().invalid()) {
+          <mat-error>{{ createForm.collectionName().errors()[0].message }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="language-field">
+        <mat-label>Translate into</mat-label>
+        <mat-select [formField]="createForm.targetLanguage">
+          @for (option of languageOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="actions">
+    <button matButton="outlined" mat-dialog-close type="button">Cancel</button>
+    <button matButton="filled" type="submit" class="generate" [disabled]="createForm().submitting()">
+      Generate flashcards
+    </button>
+  </mat-dialog-actions>
+</form>

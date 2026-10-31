@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface FlashcardCollectionRepository extends JpaRepository<FlashcardCollection, Long> {
@@ -13,6 +15,8 @@ public interface FlashcardCollectionRepository extends JpaRepository<FlashcardCo
     Optional<FlashcardCollection> findByIdIsAndUser_Username(Long id, String userUsername);
 
     boolean existsByIdAndUser_Username(Long id, String userUsername);
+
+    List<FlashcardCollection> findAllByIdInAndUser_Username(Collection<Long> ids, String userUsername);
 
     // A null namePattern disables the name filter; it is a ready LIKE pattern with '!' as the escape character.
     @Query("""

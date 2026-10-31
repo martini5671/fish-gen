@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { provideApiConfiguration } from '../../api/api-configuration';
+import { provideApiConfiguration } from '../api/api-configuration';
 import { AUTH_STORAGE_KEY, AuthStore } from './auth.store';
 
 const TOKEN = 'header.payload.signature';

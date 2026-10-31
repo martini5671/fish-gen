@@ -28,6 +28,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
 public class FlashcardControllerTests extends BaseIntegrationTest {
@@ -45,7 +47,9 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenText_whenCreateAiFlashcards_thenOneCollectionIsCreatedAndMultipleFlashcards() {
-        Mockito.when(flashcardGeneratorService.generateFlashcards(TEXT_TO_SCAN, TargetLanguage.POLISH))
+        Mockito.when(flashcardGeneratorService.generateFlashcards(eq(TEXT_TO_SCAN),
+                        eq(TargetLanguage.POLISH),
+                        anyString()))
                 .thenReturn(List.of(
                         GeneratedFlashcard.builder().source("hola").target("cześć").build(),
                         GeneratedFlashcard.builder().source("soy").target("jestem").build()));
@@ -82,8 +86,35 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
     }
 
     @Test
+    void givenText_whenCreateAiFlashcards_thenGeneratorIsCalledWithRequestingUsername() {
+        // Generation runs on another thread without the security context, so the username must travel in the event
+        Mockito.when(flashcardGeneratorService.generateFlashcards(eq(TEXT_TO_SCAN),
+                        eq(TargetLanguage.POLISH),
+                        anyString()))
+                .thenReturn(List.of(GeneratedFlashcard.builder().source("hola").target("cześć").build()));
+
+        authenticatedRestTestClient().post()
+                .uri("/api/v1/flashcards/ai")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(CreateFlashcardsDto.builder()
+                        .collectionName("test")
+                        .targetLanguage(TargetLanguage.POLISH)
+                        .textToScan(TEXT_TO_SCAN)
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isAccepted();
+
+        awaitGenerationStatus(flashcardCollectionRepository.findAll().getFirst().getId(), GenerationStatus.COMPLETED);
+        Mockito.verify(flashcardGeneratorService)
+                .generateFlashcards(TEXT_TO_SCAN, TargetLanguage.POLISH, TEST_USER_USERNAME);
+    }
+
+    @Test
     void givenNoCollectionName_whenCreateAiFlashcards_thenCollectionNameIsGenerated() {
-        Mockito.when(flashcardGeneratorService.generateFlashcards(TEXT_TO_SCAN, TargetLanguage.ENGLISH))
+        Mockito.when(flashcardGeneratorService.generateFlashcards(eq(TEXT_TO_SCAN),
+                        eq(TargetLanguage.ENGLISH),
+                        anyString()))
                 .thenReturn(List.of(GeneratedFlashcard.builder().source("hola").target("hello").build()));
 
         authenticatedRestTestClient().post()
@@ -106,7 +137,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenGeneratorReturnsNoFlashcards_whenCreateAiFlashcards_thenEmptyCollectionIsCreated() {
-        Mockito.when(flashcardGeneratorService.generateFlashcards(TEXT_TO_SCAN, TargetLanguage.POLISH))
+        Mockito.when(flashcardGeneratorService.generateFlashcards(eq(TEXT_TO_SCAN),
+                        eq(TargetLanguage.POLISH), anyString()))
                 .thenReturn(List.of());
 
         authenticatedRestTestClient().post()
@@ -129,7 +161,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
 
     @Test
     void givenGeneratorFails_whenCreateAiFlashcards_thenCollectionIsMarkedFailedWithoutFlashcards() {
-        Mockito.when(flashcardGeneratorService.generateFlashcards(TEXT_TO_SCAN, TargetLanguage.POLISH))
+        Mockito.when(flashcardGeneratorService.generateFlashcards(eq(TEXT_TO_SCAN), eq(TargetLanguage.POLISH),
+                        anyString()))
                 .thenThrow(new FlashCardGenerationException("Ai agent failed to generate flashcards",
                         new RuntimeException("timeout")));
 
@@ -189,7 +222,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .isBadRequest()
                 .expectBody()
                 .jsonPath("$.title").isEqualTo("Validation failed")
-                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {},
+                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {
+                                                     },
                         fields -> assertThat(fields).containsExactly("textToScan"));
 
         Mockito.verifyNoInteractions(flashcardGeneratorService);
@@ -209,7 +243,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .expectStatus()
                 .isBadRequest()
                 .expectBody()
-                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {},
+                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {
+                                                     },
                         fields -> assertThat(fields).containsExactly("textToScan"));
 
         Mockito.verifyNoInteractions(flashcardGeneratorService);
@@ -228,7 +263,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .expectStatus()
                 .isBadRequest()
                 .expectBody()
-                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {},
+                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {
+                                                     },
                         fields -> assertThat(fields).containsOnly("textToScan"));
 
         Mockito.verifyNoInteractions(flashcardGeneratorService);
@@ -246,7 +282,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .expectStatus()
                 .isBadRequest()
                 .expectBody()
-                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {},
+                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {
+                                                     },
                         fields -> assertThat(fields).containsExactly("targetLanguage"));
 
         Mockito.verifyNoInteractions(flashcardGeneratorService);
@@ -266,7 +303,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .expectStatus()
                 .isBadRequest()
                 .expectBody()
-                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {},
+                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {
+                                                     },
                         fields -> assertThat(fields).containsExactly("collectionName"));
 
         Mockito.verifyNoInteractions(flashcardGeneratorService);
@@ -299,7 +337,8 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .isOk()
                 .expectBody()
                 .jsonPath("$.length()").isEqualTo(3)
-                .jsonPath("$[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
+                .jsonPath("$[*].id").value(new ParameterizedTypeReference<List<Long>>() {
+                                           },
                         ids -> assertThat(ids).containsExactly(1L, 2L, 3L))
                 .jsonPath("$[0].source").isEqualTo("fox")
                 .jsonPath("$[0].target").isEqualTo("lis");

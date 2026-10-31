@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, OnInit} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { AuthStore } from '../../core/auth/auth.store';
+import { AuthStore } from '../../state/auth.store';
+import {TokenUsageStore} from '../../state/token-usage.store';
 
 // Shell for every page behind login: the navbar stays at the top, child routes render below it
 @Component({
@@ -22,8 +23,15 @@ import { AuthStore } from '../../core/auth/auth.store';
   styleUrl: './home-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomePage {
+export class HomePage implements OnInit{
+
+
   protected readonly authStore = inject(AuthStore);
+  protected readonly tokenStore = inject(TokenUsageStore);
+
+  ngOnInit(): void {
+    this.tokenStore.loadUsage();
+  }
 
   protected readonly navLinks = [
     { path: '/collections', label: 'Collections' },

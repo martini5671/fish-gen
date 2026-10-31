@@ -1,15 +1,34 @@
 <h1 class="title" id="collections-title">Your collections</h1>
 
 <section class="collections" aria-labelledby="collections-title">
-  <div class="toolbar">
-    <mat-form-field class="sort-field" subscriptSizing="dynamic">
-      <mat-label>Sort by</mat-label>
-      <mat-select [value]="store.sort()" (valueChange)="store.setSort($event)">
-        @for (option of sortOptions; track option.value) {
-          <mat-option [value]="option.value">{{ option.label }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+  <div class="collections-toolbar">
+    <div class="filters">
+      <mat-form-field class="search-field" subscriptSizing="dynamic">
+        <input
+          matInput
+          type="search"
+          placeholder="Search"
+          aria-label="Search collections"
+          [value]="store.name()"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </mat-form-field>
+      <mat-form-field class="sort-field" subscriptSizing="dynamic">
+        <mat-select
+          aria-label="Sort by"
+          [value]="store.sort()"
+          (valueChange)="store.setSort($event)"
+        >
+          @for (option of sortOptions; track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <button class="new-button" matButton="filled" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      New collection
+    </button>
   </div>
 
   <div class="table-card">
@@ -60,7 +79,13 @@
         <tr mat-row *matRowDef="let row; columns: columns"></tr>
 
         <tr class="mat-mdc-row" *matNoDataRow>
-          <td class="empty" [attr.colspan]="columns.length">You don't have any collections yet.</td>
+          <td class="empty" [attr.colspan]="columns.length">
+            @if (store.name()) {
+              No collections match "{{ store.name() }}".
+            } @else {
+              You don't have any collections yet.
+            }
+          </td>
         </tr>
       </table>
     </div>

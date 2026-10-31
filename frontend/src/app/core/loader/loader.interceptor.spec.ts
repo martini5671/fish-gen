@@ -22,31 +22,31 @@ describe('loaderInterceptor', () => {
   });
   afterEach(() => httpTesting.verify());
 
-  it('shows the loader until every pending request has finished', () => {
+  it('stays busy until every pending request has finished', () => {
     http.get('/a').subscribe();
     http.get('/b').subscribe({ error: () => {} });
-    expect(loader.loading()).toBe(true);
+    expect(loader.busy()).toBe(true);
 
     httpTesting.expectOne('/a').flush({});
-    expect(loader.loading()).toBe(true);
+    expect(loader.busy()).toBe(true);
 
     httpTesting.expectOne('/b').flush(null, { status: 500, statusText: 'Server Error' });
-    expect(loader.loading()).toBe(false);
+    expect(loader.busy()).toBe(false);
   });
 
-  it('hides the loader when the request is cancelled', () => {
+  it('stops being busy when the request is cancelled', () => {
     const subscription = http.get('/a').subscribe();
     const req = httpTesting.expectOne('/a');
-    expect(loader.loading()).toBe(true);
+    expect(loader.busy()).toBe(true);
 
     subscription.unsubscribe();
     expect(req.cancelled).toBe(true);
-    expect(loader.loading()).toBe(false);
+    expect(loader.busy()).toBe(false);
   });
 
   it('skips the loader when the request opts out', () => {
     http.get('/a', { context: new HttpContext().set(SKIP_LOADER, true) }).subscribe();
-    expect(loader.loading()).toBe(false);
+    expect(loader.busy()).toBe(false);
     httpTesting.expectOne('/a').flush({});
   });
 });

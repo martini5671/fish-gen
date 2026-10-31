@@ -2,8 +2,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { ToastrService } from 'ngx-toastr';
-import { provideApiConfiguration } from '../../api/api-configuration';
-import { CollectionDto } from '../../api/models/collection-dto';
+import { provideApiConfiguration } from '../api/api-configuration';
+import { CollectionDto } from '../api/models/collection-dto';
 import { CollectionsStore } from './collections.store';
 
 const COLLECTION: CollectionDto = {
@@ -63,6 +63,26 @@ describe('CollectionsStore', () => {
     expectQuery('sort=NAME_ASC&page=0&size=10').flush({ content: [COLLECTION], totalElements: 30 });
     expect(store.pageIndex()).toBe(0);
     expect(store.collections()).toEqual([COLLECTION]);
+  });
+
+  it('searches by name from the first page and drops an empty search', () => {
+    const store = setup();
+    expectQuery('sort=NEWEST&page=0&size=10').flush({ content: [], totalElements: 30 });
+    store.setPage(2, 10);
+    TestBed.tick();
+    expectQuery('sort=NEWEST&page=2&size=10').flush({ content: [], totalElements: 30 });
+
+    store.setName('  kitchen ');
+    TestBed.tick();
+    expectQuery('name=kitchen&sort=NEWEST&page=0&size=10').flush({
+      content: [COLLECTION],
+      totalElements: 1,
+    });
+    expect(store.collections()).toEqual([COLLECTION]);
+
+    store.setName('');
+    TestBed.tick();
+    expectQuery('sort=NEWEST&page=0&size=10').flush({ content: [], totalElements: 30 });
   });
 
   it('requests the chosen page and page size', () => {

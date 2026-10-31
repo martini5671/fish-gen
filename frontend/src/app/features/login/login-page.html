@@ -43,7 +43,7 @@
           mat-flat-button
           type="submit"
           class="submit"
-          [disabled]="loginForm().invalid() || loader.loading()"
+          [disabled]="loginForm().invalid() || loader.busy()"
         >
           Log in
         </button>
