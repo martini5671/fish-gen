@@ -85,7 +85,10 @@ export class CollectionsPage {
     this.search$.next(name);
   }
 
-  // mat-table rows are typed as any, so the template reads labels through these typed helpers
+  // keeps a row's <tr> when its collection object is replaced, so a status update doesn't recreate it
+  protected readonly trackById = (_: number, collection: CollectionDto): number => collection.id;
+
+  // mat-table rows are typed as any, so the template reads labels through these typed helper
   protected languageLabel(collection: CollectionDto): string {
     return collection.targetLanguage ? capitalize(collection.targetLanguage) : '–';
   }

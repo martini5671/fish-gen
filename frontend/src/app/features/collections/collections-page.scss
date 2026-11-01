@@ -59,6 +59,7 @@
   background: var(--fg-white);
   border: 1px solid var(--fg-grey-200);
   border-radius: 14px;
+  box-shadow: var(--fg-shadow-card);
 }
 
 // Wide tables scroll inside the card on phones instead of stretching the page
@@ -156,4 +157,9 @@ mat-paginator {
   ));
 
   border-top: 1px solid var(--fg-grey-200);
+}
+
+.circle-button{
+  border: 3px solid #4f46e5;
+
 }

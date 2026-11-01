@@ -9,10 +9,12 @@
 :root {
   --fg-blue-50: #eff6ff;
   --fg-blue-100: #dbeafe;
+  --fg-blue-200: #bfdbfe;
+  --fg-blue-300: #93c5fd;
+  --fg-blue-400: #60a5fa;
   --fg-blue-500: #3b82f6;
   --fg-blue-600: #2563eb;
   --fg-blue-700: #1d4ed8;
-  --fg-cyan-500: #06b6d4;
 
   --fg-white: #ffffff;
   --fg-grey-50: #f8fafc;
@@ -27,8 +29,7 @@
 
   --fg-gradient: linear-gradient(135deg, var(--fg-blue-600) 0%, var(--fg-cyan-500) 100%);
   --fg-radius: 10px;
-  --fg-shadow-glow: 0 4px 14px rgb(37 99 235 / 0.3);
-  --fg-shadow-card: 0 5px 14px rgb(51 102 255 / 0.24);
+  --fg-shadow-card: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
 }
 
 html {
@@ -188,3 +189,13 @@ a {
 @include mat.autocomplete-overrides((
   background-color: var(--fg-white),
 ));
+
+.row-flash td {
+  animation: row-flash 1.8s ease-in-out;
+}
+
+@keyframes row-flash {
+  0%   { background-color: transparent; }
+  30%  { background-color: var(--fg-blue-50); }
+  100% { background-color: transparent; }
+}

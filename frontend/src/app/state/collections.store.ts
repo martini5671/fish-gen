@@ -19,6 +19,7 @@ type CollectionsState = {
   sort: CollectionSort;
   pageIndex: number;
   pageSize: number;
+  updatedCollectionIds: number[]
 };
 
 const initialState: CollectionsState = {
@@ -28,10 +29,13 @@ const initialState: CollectionsState = {
   sort: 'NEWEST',
   pageIndex: 0,
   pageSize: 10,
+  updatedCollectionIds: []
 };
 
 // every second
 const POLL_INTERVAL_MS = 1000;
+// matches the row-flash animation in styles.scss
+const ROW_FLASH_MS = 1800;
 
 // Provided by CollectionsPage, so every visit starts from the first page with the default sort
 export const CollectionsStore = signalStore(
@@ -94,16 +98,27 @@ export const CollectionsStore = signalStore(
                           const statusById = new Map(
                             statuses.map((s) => [s.collectionId, s.generationStatus]),
                           );
-                          patchState(store, {
-                            // the endpoint only returns statuses, so merge them into the collections we have;
-                            // unchanged ones keep their reference so the table doesn't re-render them
-                            collections: store.collections().map((c) => {
-                              const status = statusById.get(c.id);
-                              return status && status !== c.generationStatus
-                                ? {...c, generationStatus: status}
-                                : c;
-                            }),
+                          // the endpoint only returns statuses, so merge them into the collections we have;
+                          // unchanged ones keep their reference so the table doesn't re-render them
+                          const changedIds: number[] = [];
+                          const collections = store.collections().map((c) => {
+                            const status = statusById.get(c.id);
+                            if (!status || status === c.generationStatus) return c;
+                            changedIds.push(c.id);
+                            return {...c, generationStatus: status};
                           });
+                          if (changedIds.length === 0) return;
+                          patchState(store, {
+                            collections,
+                            updatedCollectionIds: [...store.updatedCollectionIds(), ...changedIds],
+                          });
+                          // drop the ids once the flash is over, so a later re-render doesn't flash them again
+                          setTimeout(
+                            () => patchState(store, {
+                              updatedCollectionIds: store.updatedCollectionIds().filter((id) => !changedIds.includes(id)),
+                            }),
+                            ROW_FLASH_MS,
+                          );
                         },
                         // a failed poll is not worth a toast; the next tick tries again
                         error: () => {},
