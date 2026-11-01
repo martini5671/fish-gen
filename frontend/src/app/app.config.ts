@@ -1,7 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideToastr } from 'ngx-toastr';
 
 import { provideApiConfiguration } from './api/api-configuration';
@@ -12,7 +12,8 @@ import { loaderInterceptor } from './core/loader/loader.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    // Route params like :collectionId arrive as component inputs
+    provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([loaderInterceptor, authInterceptor])),
     // Every form field in the app uses the outlined look defined in styles.scss
     { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },

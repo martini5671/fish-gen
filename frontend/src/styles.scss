@@ -16,6 +16,9 @@
   --fg-blue-600: #2563eb;
   --fg-blue-700: #1d4ed8;
 
+  --fg-cyan-500: #06b6d4;
+  --fg-violet-500: #8b5cf6;
+
   --fg-white: #ffffff;
   --fg-grey-50: #f8fafc;
   --fg-grey-100: #f1f5f9;
@@ -123,6 +126,41 @@ html {
     title-text-weight: 700,
     title-text-tracking: -0.01em,
   ));
+
+  // Tables: white body with airy rows and hairline dividers; the header is styled below
+  @include mat.table-overrides((
+    background-color: var(--fg-white),
+    header-container-height: 48px,
+    header-headline-color: var(--fg-blue-700),
+    header-headline-size: 12px,
+    header-headline-weight: 600,
+    header-headline-tracking: 0.06em,
+    row-item-container-height: 60px,
+    row-item-label-text-color: var(--fg-grey-700),
+    row-item-label-text-size: 14px,
+    row-item-outline-color: var(--fg-grey-100),
+  ));
+}
+
+// Table header: a pale blue-to-cyan wash that echoes the button gradient, with uppercase
+// labels and a blue hairline separating it from the rows
+.mat-mdc-table .mat-mdc-header-row {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--fg-blue-100) 70%, var(--fg-white)) 0%,
+    color-mix(in srgb, var(--fg-cyan-500) 10%, var(--fg-white)) 100%
+  );
+
+  .mat-mdc-header-cell {
+    border-bottom: 1px solid var(--fg-blue-200);
+    background: transparent;
+    text-transform: uppercase;
+  }
+}
+
+.mat-mdc-table .mat-mdc-header-cell,
+.mat-mdc-table .mat-mdc-cell {
+  padding: 0 20px;
 }
 
 body {
@@ -189,6 +227,77 @@ a {
 @include mat.autocomplete-overrides((
   background-color: var(--fg-white),
 ));
+
+// Aurora background: soft blurred blue, cyan and violet glows drifting slowly around the
+// edges of the screen, leaving the centre white for the content.
+// Add the class to a page's root element. The glows are fixed to the viewport, so they
+// stay at the edges while a long page scrolls, and no overflow is needed to clip them,
+// which would break sticky headers inside the page
+.bg-aurora {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--fg-grey-50);
+
+  // Each layer is a viewport-sized sheet of soft spots, larger than the screen so the drift
+  // never shows an edge; the two layers drift in opposite directions.
+  // The layer reaches 20vmax past the screen, so its 14-86% / 16-84% band is the screen's edge
+  &::before,
+  &::after {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    inset: -20vmax;
+    filter: blur(60px);
+    opacity: 0.5;
+    pointer-events: none;
+    // fades every spot out towards the middle, so the centre stays white on any screen shape
+    mask-image: radial-gradient(closest-side, transparent 45%, #000 78%);
+  }
+
+  // A solid core before the fade keeps each spot as strong as a blurred solid circle
+  // corners and the middle of the top edge
+  &::before {
+    background:
+      radial-gradient(circle at 15% 17%, var(--fg-blue-500) 12vmax, transparent 24vmax),
+      radial-gradient(circle at 85% 17%, var(--fg-violet-500) 10vmax, transparent 22vmax),
+      radial-gradient(circle at 85% 83%, var(--fg-cyan-500) 12vmax, transparent 24vmax),
+      radial-gradient(circle at 15% 83%, var(--fg-violet-500) 10vmax, transparent 22vmax),
+      radial-gradient(circle at 50% 15%, var(--fg-cyan-500) 9vmax, transparent 20vmax);
+    animation: aurora-drift 18s ease-in-out infinite alternate;
+  }
+
+  // the gaps between them along every edge
+  &::after {
+    background:
+      radial-gradient(circle at 32% 15%, var(--fg-violet-500) 8vmax, transparent 18vmax),
+      radial-gradient(circle at 68% 15%, var(--fg-blue-400) 8vmax, transparent 18vmax),
+      radial-gradient(circle at 87% 50%, var(--fg-blue-400) 10vmax, transparent 20vmax),
+      radial-gradient(circle at 68% 85%, var(--fg-violet-500) 8vmax, transparent 18vmax),
+      radial-gradient(circle at 50% 86%, var(--fg-blue-500) 9vmax, transparent 20vmax),
+      radial-gradient(circle at 32% 85%, var(--fg-cyan-500) 8vmax, transparent 18vmax),
+      radial-gradient(circle at 13% 50%, var(--fg-cyan-500) 10vmax, transparent 20vmax);
+    animation: aurora-drift-back 22s ease-in-out infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::before,
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes aurora-drift {
+  to {
+    transform: translate(5vmax, 3vmax) scale(1.05);
+  }
+}
+
+@keyframes aurora-drift-back {
+  to {
+    transform: translate(-5vmax, -3vmax) scale(1.04);
+  }
+}
 
 .row-flash td {
   animation: row-flash 1.8s ease-in-out;

@@ -1,5 +1,3 @@
-<h1 class="title" id="collections-title">Your collections</h1>
-
 <section class="collections" aria-labelledby="collections-title">
   <div class="collections-toolbar">
     <div class="filters">
@@ -36,7 +34,55 @@
       <table mat-table [dataSource]="store.collections()" [trackBy]="trackById" class="collections-table">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let collection" class="name-cell">{{ collection.name }}</td>
+          <!--while editing, clicks and keys stay in the cell so they don't open the row-->
+          <td mat-cell *matCellDef="let collection" class="name-cell"
+           (click)="editingId() === collection.id && $event.stopPropagation()"
+           (keydown)="editingId() === collection.id && $event.stopPropagation()">
+            @if (editingId() === collection.id) {
+              <div class="name-edit">
+                <input
+                  #nameInput
+                  class="name-input"
+                  [class.invalid]="draftError()"
+                  [value]="draftName()"
+                  (input)="draftName.set(nameInput.value)"
+                  (keydown.enter)="saveName(collection)"
+                  (keydown.escape)="cancelEdit()"
+                  [attr.aria-label]="'New name for ' + collection.name"
+                  [attr.aria-invalid]="!!draftError()"
+                  maxlength="255"
+                />
+                <button
+                  type="button"
+                  class="icon-button save"
+                  aria-label="Save name"
+                  [disabled]="!!draftError()"
+                  (click)="saveName(collection)"
+                >
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button type="button" class="icon-button" aria-label="Cancel renaming" (click)="cancelEdit()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              @if (draftError(); as error) {
+                <span class="name-error">{{ error }}</span>
+              }
+            } @else {
+              <div class="name-view">
+                <span>{{ collection.name }}</span>
+                <button
+                  type="button"
+                  class="icon-button edit"
+                  [attr.aria-label]="'Rename ' + collection.name"
+                  (click)="$event.stopPropagation(); startEdit(collection)"
+                  (keydown.enter)="$event.stopPropagation()"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </div>
+            }
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="targetLanguage">
@@ -63,15 +109,28 @@
 
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
-          <td mat-cell *matCellDef="let collection" class="actions-cell">
-            <button class="circle-button" mat-icon-button disableRipple aria-label="Refresh">
-              <mat-icon>more_vert</mat-icon>
+          <!--the button has its own action, so its clicks don't reach the row-->
+          <td mat-cell *matCellDef="let collection" class="actions-cell"
+           (click)="$event.stopPropagation()"
+           (keydown.enter)="$event.stopPropagation()">
+            <button
+              type="button"
+              class="delete-button"
+              [attr.aria-label]="'Delete ' + collection.name"
+              (click)="confirmDelete(collection)"
+            >
+              <mat-icon>delete_outline</mat-icon>
+              Delete
             </button>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="columns"></tr>
         <tr mat-row *matRowDef="let row; columns: columns"
+         class="clickable-row"
+         tabindex="0"
+         (click)="openCollection(row.id)"
+         (keydown.enter)="openCollection(row.id)"
          [class.row-flash]="store.updatedCollectionIds().includes(row.id)"
         ></tr>
 

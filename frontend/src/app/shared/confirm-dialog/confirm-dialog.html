@@ -1,0 +1,21 @@
+<div class="header">
+  @if (data.destructive) {
+    <span class="warning-icon" aria-hidden="true"><mat-icon>warning_amber</mat-icon></span>
+  }
+  <h2 mat-dialog-title class="title">{{ data.title }}</h2>
+</div>
+
+<mat-dialog-content class="message">{{ data.message }}</mat-dialog-content>
+
+<mat-dialog-actions class="actions">
+  <!--cdkFocusInitial puts focus on Cancel, so Enter right after opening doesn't confirm-->
+  <button matButton="outlined" type="button" mat-dialog-close cdkFocusInitial>Cancel</button>
+  <button
+    matButton="filled"
+    type="button"
+    [class.danger]="data.destructive"
+    [mat-dialog-close]="true"
+  >
+    {{ data.confirmLabel }}
+  </button>
+</mat-dialog-actions>

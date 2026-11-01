@@ -4,6 +4,8 @@ import com.martini.fish_gen.model.enumeration.GenerationStatus;
 import com.martini.fish_gen.model.enumeration.TargetLanguage;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +40,11 @@ public class FlashcardCollection extends AuditingBaseEntity {
     @Column(nullable = false, length = 20)
     private GenerationStatus generationStatus = GenerationStatus.PENDING;
 
+    // The foreign key has ON DELETE CASCADE (V9), so deleting a collection leaves the flashcard
+    // rows to the database; Hibernate only drops them from the session instead of deleting each one
     @Builder.Default
-    @OneToMany(mappedBy = "flashcardCollection", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(mappedBy = "flashcardCollection", cascade = CascadeType.PERSIST)
     private List<Flashcard> flashcards = new ArrayList<>();
 
     public void addFlashcard(Flashcard flashcard) {

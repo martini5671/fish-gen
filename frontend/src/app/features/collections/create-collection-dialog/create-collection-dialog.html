@@ -12,21 +12,6 @@
 
 <form (submit)="submit($event)" novalidate>
   <mat-dialog-content class="fields">
-    <mat-form-field class="text-field">
-      <mat-label>Text</mat-label>
-      <textarea
-        matInput
-        rows="8"
-        placeholder="Paste an article, lecture notes or a list of words…"
-        [formField]="createForm.textToScan"
-      ></textarea>
-      @if (createForm.textToScan().touched() && createForm.textToScan().invalid()) {
-        <mat-error>{{ createForm.textToScan().errors()[0].message }}</mat-error>
-      } @else {
-        <mat-hint>{{ textMinLength }}–{{ textMaxLength }} characters</mat-hint>
-      }
-      <mat-hint align="end">{{ model().textToScan.length }} / {{ textMaxLength }}</mat-hint>
-    </mat-form-field>
 
     <div class="row">
       <mat-form-field class="name-field">
@@ -52,8 +37,23 @@
     </div>
   </mat-dialog-content>
 
+  <mat-form-field class="text-field">
+    <mat-label>Text</mat-label>
+    <textarea
+      matInput
+      rows="8"
+      placeholder="Paste an article, lecture notes or a list of words…"
+      [formField]="createForm.textToScan"
+    ></textarea>
+    @if (createForm.textToScan().touched() && createForm.textToScan().invalid()) {
+      <mat-error>{{ createForm.textToScan().errors()[0].message }}</mat-error>
+    } @else {
+      <mat-hint>{{ textMinLength }}–{{ textMaxLength }} characters</mat-hint>
+    }
+    <mat-hint align="end">{{ model().textToScan.length }} / {{ textMaxLength }}</mat-hint>
+  </mat-form-field>
+
   <mat-dialog-actions class="actions">
-    <button matButton="outlined" mat-dialog-close type="button">Cancel</button>
     <button matButton="filled" type="submit" class="generate" [disabled]="createForm().submitting()">
       Generate flashcards
     </button>

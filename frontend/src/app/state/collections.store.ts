@@ -4,7 +4,7 @@ import {tapResponse} from '@ngrx/operators';
 import {patchState, signalStore, withComputed, withHooks, withMethods, withState,} from '@ngrx/signals';
 import {rxMethod} from '@ngrx/signals/rxjs-interop';
 import {ToastrService} from 'ngx-toastr';
-import {distinctUntilChanged, EMPTY, exhaustMap, pipe, switchMap, timer} from 'rxjs';
+import {distinctUntilChanged, EMPTY, exhaustMap, mergeMap, pipe, switchMap, timer} from 'rxjs';
 import {GetCollections$Params} from '../api/fn/collections/get-collections';
 import {CollectionDto} from '../api/models/collection-dto';
 import {CollectionsService} from '../api/services/collections.service';
@@ -142,11 +142,65 @@ export const CollectionsStore = signalStore(
       },
     }),
   ),
-  withMethods((store) => ({
+  withMethods((store, collectionsService = inject(CollectionsService), toastr = inject(ToastrService)) => ({
     // For changes made outside the store, e.g. a collection created in the dialog
     reload(): void {
       store.loadCollections(store.query());
-    }
+    },
+    // Shows the new name right away and puts the old one back if the backend rejects it.
+    // mergeMap so renaming several rows quickly sends every request
+    renameCollection: rxMethod<{id: number; name: string}>(
+      pipe(
+        mergeMap(({id, name}) => {
+          const previousName = store.collections().find((c) => c.id === id)?.name;
+          const setName = (newName: string) =>
+            patchState(store, {
+              collections: store.collections().map((c) => (c.id === id ? {...c, name: newName} : c)),
+            });
+          setName(name);
+          return collectionsService.updateCollectionNameById({id, body: {collectionName: name}}).pipe(
+            tapResponse({
+              next: () => toastr.success(`Renamed to "${name}"`, 'Collection renamed'),
+              error: (error: HttpErrorResponse) => {
+                if (previousName !== undefined) {
+                  setName(previousName);
+                }
+                toastr.error(
+                  error.error?.detail ?? 'Could not rename the collection, try again later',
+                  'Renaming failed',
+                );
+              },
+            }),
+          );
+        }),
+      ),
+    ),
+    // mergeMap so deleting several rows quickly sends every request
+    deleteCollection: rxMethod<number>(
+      pipe(
+        mergeMap((id) =>
+          collectionsService.delete({id}).pipe(
+            tapResponse({
+              next: () => {
+                toastr.success('The collection and its flashcards were deleted', 'Collection deleted');
+                // Removing the only row of a later page would leave it empty, so step back one;
+                // the page change reloads through the query
+                if (store.collections().length === 1 && store.pageIndex() > 0) {
+                  patchState(store, {pageIndex: store.pageIndex() - 1});
+                } else {
+                  store.loadCollections(store.query());
+                }
+              },
+              error: (error: HttpErrorResponse) =>
+                toastr.error(
+                  error.error?.detail ?? 'Could not delete the collection, try again later',
+                  'Deleting failed',
+                ),
+            }),
+          ),
+        ),
+      ),
+    ),
   })),
   withHooks({
     onInit(store) {

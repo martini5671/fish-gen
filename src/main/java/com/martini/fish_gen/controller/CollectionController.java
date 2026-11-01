@@ -3,6 +3,7 @@ package com.martini.fish_gen.controller;
 import com.martini.fish_gen.model.dto.*;
 import com.martini.fish_gen.service.CollectionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -48,7 +49,7 @@ public class CollectionController {
 
     @PatchMapping("/{id}")
     public void updateCollectionNameById(@PathVariable Long id,
-                                         @RequestBody UpdateCollectionNameDto dto) {
+                                         @RequestBody @Valid UpdateCollectionNameDto dto) {
         collectionService.updateCollectionName(id, dto.collectionName());
     }
 

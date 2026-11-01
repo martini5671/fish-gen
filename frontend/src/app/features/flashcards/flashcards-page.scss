@@ -1,0 +1,50 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  font-size: 14px;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 24px;
+  border: 2px dashed var(--fg-grey-200);
+  border-radius: 14px;
+  background: var(--fg-white);
+  color: var(--fg-grey-500);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.placeholder-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 40px;
+  color: var(--fg-blue-300);
+}

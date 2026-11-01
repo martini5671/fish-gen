@@ -50,16 +50,14 @@
   padding: 0 20px;
   font-size: 15px;
   font-weight: 600;
-  box-shadow: var(--fg-shadow-glow);
 }
 
 // White card around the table and paginator, as in the mock
 .table-card {
   overflow: hidden;
   background: var(--fg-white);
-  border: 1px solid var(--fg-grey-200);
+  border: 3px solid var(--fg-grey-200);
   border-radius: 14px;
-  box-shadow: var(--fg-shadow-card);
 }
 
 // Wide tables scroll inside the card on phones instead of stretching the page
@@ -67,36 +65,129 @@
   overflow-x: auto;
 }
 
+// Colors, row height and the header come from the global table styles in styles.scss
 .collections-table {
-  @include mat.table-overrides((
-    background-color: var(--fg-white),
-    header-headline-color: var(--fg-grey-500),
-    header-headline-size: 12px,
-    header-headline-weight: 600,
-    header-container-height: 48px,
-    row-item-container-height: 60px,
-    row-item-label-text-color: var(--fg-grey-700),
-    row-item-label-text-size: 14px,
-    row-item-outline-color: var(--fg-grey-100),
-  ));
-
   width: 100%;
   min-width: 680px;
+}
 
-  th {
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+// The whole row opens the collection
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background-color: var(--fg-grey-50);
   }
 
-  th,
-  td {
-    padding: 0 20px;
+  &:focus-visible {
+    outline: 2px solid var(--fg-blue-600);
+    outline-offset: -2px;
   }
+}
+
+.actions-cell {
+  cursor: default;
 }
 
 .name-cell {
   font-weight: 600;
   color: var(--fg-grey-900);
+}
+
+.name-view,
+.name-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+// The pencil stays faint until the row is hovered or the button is focused, so it doesn't clutter the list
+.icon-button.edit {
+  opacity: 0;
+
+  .clickable-row:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  // Touch screens have no hover, so the pencil is always shown there
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+.name-input {
+  width: 100%;
+  max-width: 260px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--fg-blue-500);
+  border-radius: 8px;
+  background: var(--fg-white);
+  color: var(--fg-grey-900);
+  font: inherit;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--fg-blue-100);
+
+  &.invalid {
+    border-color: var(--fg-red-600);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--fg-red-600) 15%, var(--fg-white));
+  }
+}
+
+.name-error {
+  display: block;
+  margin-top: 4px;
+  color: var(--fg-red-600);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+// Small square ghost buttons for the edit, save and cancel actions next to the name
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-grey-500);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--fg-grey-100);
+    color: var(--fg-grey-900);
+  }
+
+  &.save:not(:disabled) {
+    color: var(--fg-blue-600);
+
+    &:hover {
+      background-color: var(--fg-blue-50);
+      color: var(--fg-blue-700);
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fg-blue-600);
+    outline-offset: 1px;
+  }
 }
 
 .muted {
@@ -138,10 +229,40 @@
 .actions-cell {
   white-space: nowrap;
 
-  button {
-    @include mat.icon-button-overrides((
-      icon-color: var(--fg-grey-500),
-    ));
+}
+
+// Plain grey text button that only turns red on hover, so a table full of them stays calm;
+// the confirm dialog is the real safeguard
+.delete-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--fg-radius);
+  background: transparent;
+  color: var(--fg-grey-500);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--fg-red-600) 25%, var(--fg-white));
+    background-color: color-mix(in srgb, var(--fg-red-600) 8%, var(--fg-white));
+    color: var(--fg-red-600);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--fg-red-600);
+    outline-offset: 1px;
   }
 }
 
@@ -157,9 +278,4 @@ mat-paginator {
   ));
 
   border-top: 1px solid var(--fg-grey-200);
-}
-
-.circle-button{
-  border: 3px solid #4f46e5;
-
 }

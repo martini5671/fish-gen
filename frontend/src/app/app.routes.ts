@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/auth/auth.guard';
 import { CollectionsPage } from './features/collections/collections-page';
+import { FlashcardsPage } from './features/flashcards/flashcards-page';
 import { HomePage } from './features/home/home-page';
 import { LoginPage } from './features/login/login-page';
 import { ProfilePage } from './features/profile/profile-page';
@@ -19,6 +20,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'collections' },
       { path: 'collections', component: CollectionsPage },
+      { path: 'collections/:collectionId', component: FlashcardsPage },
       { path: 'profile', component: ProfilePage },
     ],
   },

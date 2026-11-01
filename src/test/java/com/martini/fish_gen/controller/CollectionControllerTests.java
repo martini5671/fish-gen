@@ -212,6 +212,42 @@ public class CollectionControllerTests extends BaseIntegrationTest {
 
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenBlankName_whenUpdateCollectionName_shouldReturn400AndKeepName() {
+        var id = 1L;
+        var originalName = flashcardCollectionRepository.findById(id).orElseThrow().getName();
+
+        authenticatedRestTestClient().patch()
+                .uri("/api/v1/collections/{id}", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(UpdateCollectionNameDto.builder()
+                        .collectionName("   ")
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isBadRequest();
+
+        assertThat(flashcardCollectionRepository.findById(id))
+                .get()
+                .extracting(FlashcardCollection::getName)
+                .isEqualTo(originalName);
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenTooLongName_whenUpdateCollectionName_shouldReturn400() {
+        authenticatedRestTestClient().patch()
+                .uri("/api/v1/collections/{id}", 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(UpdateCollectionNameDto.builder()
+                        .collectionName("a".repeat(256))
+                        .build())
+                .exchange()
+                .expectStatus()
+                .isBadRequest();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
     void givenCollectionOfOtherUser_whenUpdateCollectionName_shouldReturn404AndKeepName() {
         authenticatedRestTestClient().patch()
                 .uri("/api/v1/collections/{id}", OTHER_USER_COLLECTION_ID)
