@@ -336,24 +336,59 @@ public class FlashcardControllerTests extends BaseIntegrationTest {
                 .expectStatus()
                 .isOk()
                 .expectBody()
-                .jsonPath("$.length()").isEqualTo(3)
-                .jsonPath("$[*].id").value(new ParameterizedTypeReference<List<Long>>() {
+                .jsonPath("$.content.length()").isEqualTo(3)
+                .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {
                                            },
                         ids -> assertThat(ids).containsExactly(1L, 2L, 3L))
-                .jsonPath("$[0].source").isEqualTo("fox")
-                .jsonPath("$[0].target").isEqualTo("lis");
+                .jsonPath("$.content[0].source").isEqualTo("fox")
+                .jsonPath("$.content[0].target").isEqualTo("lis")
+                .jsonPath("$.totalElements").isEqualTo(3);
     }
 
     @Test
     @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
-    void givenCollectionWithoutFlashcards_whenGetByCollectionId_thenReturnsEmptyList() {
+    void givenPageAndSize_whenGetByCollectionId_thenReturnsThatPageInIdOrder() {
+        authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/flashcards/collections/{collectionId}")
+                        .queryParam("page", 1)
+                        .queryParam("size", 2)
+                        .build(1))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {
+                                           },
+                        ids -> assertThat(ids).containsExactly(3L))
+                .jsonPath("$.totalElements").isEqualTo(3)
+                .jsonPath("$.totalPages").isEqualTo(2);
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenTooLargePageSize_whenGetByCollectionId_thenReturns400() {
+        authenticatedRestTestClient().get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/flashcards/collections/{collectionId}")
+                        .queryParam("size", 101)
+                        .build(1))
+                .exchange()
+                .expectStatus()
+                .isBadRequest();
+    }
+
+    @Test
+    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
+    void givenCollectionWithoutFlashcards_whenGetByCollectionId_thenReturnsEmptyPage() {
         authenticatedRestTestClient().get()
                 .uri("/api/v1/flashcards/collections/{collectionId}", 11)
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectBody()
-                .jsonPath("$.length()").isEqualTo(0);
+                .jsonPath("$.content.length()").isEqualTo(0)
+                .jsonPath("$.totalElements").isEqualTo(0);
     }
 
     @Test

@@ -1,0 +1,21 @@
+<div class="flip-card" [class.flipped]="flipped()" (click)="flipCard()"
+     role="button" tabindex="0" [attr.aria-label]="flipped() ? 'Show front' : 'Show back'"
+     (keydown.enter)="flipCard()" (keydown.space)="$event.preventDefault(); flipCard()">
+  <div class="flip-card-inner">
+    <mat-card class="face front"
+              [style.background]="settings.frontBackground()"
+              [style.color]="textColors[settings.frontText()]">
+      <mat-card-content class="centered-content">
+        {{front()}}
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="face back"
+              [style.background]="settings.backBackground()"
+              [style.color]="textColors[settings.backText()]">
+      <mat-card-content class="centered-content">
+        {{back()}}
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

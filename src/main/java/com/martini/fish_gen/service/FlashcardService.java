@@ -14,10 +14,12 @@ import com.martini.fish_gen.repository.FlashcardRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -64,11 +66,12 @@ public class FlashcardService {
     }
 
     @Transactional(readOnly = true)
-    public List<Flashcard> getFlashcardsByCollectionId(Long collectionId) {
+    public Page<Flashcard> getFlashcardsByCollectionId(Long collectionId, int page, int size) {
         if (!flashcardCollectionRepository.existsByIdAndUser_Username(collectionId, currentUserService.getUsername())) {
             throw new EntityNotFoundException("Collection with id " + collectionId + " not found");
         }
-        return flashcardRepository.findAllByFlashcardCollectionIdOrderById(collectionId);
+        return flashcardRepository.findAllByFlashcardCollectionId(collectionId,
+                PageRequest.of(page, size, Sort.by("id")));
     }
 
 }

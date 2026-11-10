@@ -1,0 +1,68 @@
+<h1 class="title">Settings</h1>
+
+<section class="panel" aria-labelledby="card-colors-title">
+  <header class="panel-header">
+    <div>
+      <h2 id="card-colors-title" class="panel-title">Flashcard colours</h2>
+      <p class="panel-subtitle">Pick the background and text colour of each side. Changes are saved straight away.</p>
+    </div>
+    <button matButton="outlined" (click)="store.reset()">
+      <mat-icon>restart_alt</mat-icon>
+      Reset to defaults
+    </button>
+  </header>
+
+  <div class="panel-body">
+    <div class="face-settings">
+      <span class="field-label">{{ face().label }} background</span>
+      <div class="background-row">
+        <button
+          type="button"
+          class="swatch"
+          [attr.aria-label]="'Pick the ' + face().label.toLowerCase() + ' background colour'"
+          [style.background]="face().background() ?? face().defaultGradient"
+          [colorPicker]="face().background() ?? face().pickerStart"
+          (colorPickerChange)="face().setBackground($event)"
+          cpOutputFormat="hex"
+          cpAlphaChannel="disabled"
+          cpPosition="bottom"
+          [cpPresetColors]="presetColors"
+        ></button>
+        <span class="swatch-value">{{ face().background() ?? 'Default gradient' }}</span>
+        @if (face().background()) {
+          <button matButton type="button" class="default-button" (click)="face().setBackground(null)">
+            Use default
+          </button>
+        }
+      </div>
+
+      <span class="field-label">{{ face().label }} text</span>
+      <mat-button-toggle-group
+        [attr.aria-label]="face().label + ' text colour'"
+        [value]="face().text()"
+        (change)="face().setText($event.value)"
+        hideSingleSelectionIndicator
+      >
+        <mat-button-toggle value="dark">
+          <span class="text-dot dark"></span>
+          Black
+        </mat-button-toggle>
+        <mat-button-toggle value="light">
+          <span class="text-dot light"></span>
+          White
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <div class="preview">
+      <span class="field-label">Preview</span>
+      <app-flashcard
+        front="Front"
+        back="Back"
+        [flipped]="editing() === 'back'"
+        (flippedChange)="editing.set($event ? 'back' : 'front')"
+      />
+      <p class="preview-hint">You're editing the side that's showing. Click the card to flip it and edit the other side.</p>
+    </div>
+  </div>
+</section>

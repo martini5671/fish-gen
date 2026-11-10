@@ -2,9 +2,50 @@
   <mat-icon>arrow_back</mat-icon>
   Back to collections
 </a>
-<h1 class="title">Flashcards</h1>
 
-<div class="placeholder">
-  <mat-icon class="placeholder-icon" aria-hidden="true">style</mat-icon>
-  <p>Flashcards of collection #{{ collectionId() }} will show up here.</p>
-</div>
+<header class="header">
+  <h1 class="title">Flashcards</h1>
+  @if (total()) {
+    <span class="count">{{ total() }} {{ total() === 1 ? 'card' : 'cards' }}</span>
+  }
+</header>
+
+@if (total()) {
+  <section class="study" aria-label="Flashcard viewer">
+    <div class="card-stage" [class.backward]="direction() === 'backward'">
+      @for (card of visibleFlashcards(); track card.id) {
+        <app-flashcard
+          animate.enter="card-enter"
+          animate.leave="card-leave"
+          [front]="card.source!"
+          [back]="card.target!"/>
+      }
+    </div>
+
+    <div class="controls">
+      <button matIconButton class="nav-button" aria-label="Previous flashcard"
+              [disabled]="!canMove()" (click)="goToPreviousFlashcard()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <div class="position" aria-live="polite">
+        <span class="position-text">{{ position() + 1 }} / {{ total() }}</span>
+        <div class="progress" aria-hidden="true">
+          <div class="progress-bar" [style.width.%]="progress()"></div>
+        </div>
+      </div>
+
+      <button matIconButton class="nav-button" aria-label="Next flashcard"
+              [disabled]="!canMove()" (click)="goToNextFlashcard()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+    <p class="hint">Click the card to flip it · use ← and → to move between cards</p>
+  </section>
+} @else if (flashcardStore.loaded()) {
+  <div class="empty">
+    <mat-icon class="empty-icon">style</mat-icon>
+    <p>No flashcards in this collection yet.</p>
+  </div>
+}

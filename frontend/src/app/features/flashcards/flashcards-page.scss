@@ -18,6 +18,12 @@
   }
 }
 
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
 .title {
   margin: 0;
   font-family: 'Plus Jakarta Sans', Inter, sans-serif;
@@ -25,7 +31,115 @@
   font-weight: 700;
 }
 
-.placeholder {
+.count {
+  font-size: 14px;
+  color: var(--fg-grey-500);
+}
+
+// White panel holding the card and its controls, matching the collections table card
+.study {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 48px 24px 32px;
+  overflow: hidden;
+  background: var(--fg-white);
+  border: 3px solid var(--fg-grey-200);
+  border-radius: 14px;
+}
+
+.card-stage {
+  position: relative;
+  width: min(520px, 100%);
+  height: 300px;
+
+  app-flashcard {
+    // the host element is inline by default, and transforms don't apply to inline elements
+    display: block;
+    height: 100%;
+  }
+
+  // forward (next): the new card comes in from the right and the old one leaves to the left
+  .card-enter {
+    animation: slide-in-from-right 300ms ease-out;
+  }
+
+  // taken out of the flow so the new card sits in its place instead of below it
+  .card-leave {
+    position: absolute;
+    inset: 0;
+    animation: slide-out-to-left 300ms ease-in forwards;
+  }
+
+  // backward (previous): the other way round
+  &.backward {
+    .card-enter {
+      animation-name: slide-in-from-left;
+    }
+
+    .card-leave {
+      animation-name: slide-out-to-right;
+    }
+  }
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: min(520px, 100%);
+}
+
+.nav-button {
+  flex-shrink: 0;
+  border: 2px solid var(--fg-grey-200);
+  color: var(--fg-blue-600);
+
+  &:not(:disabled):hover {
+    border-color: var(--fg-blue-300);
+    background: var(--fg-blue-50);
+  }
+}
+
+.position {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.position-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-grey-700);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  background: var(--fg-grey-100);
+  border-radius: 3px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--fg-gradient);
+  border-radius: 3px;
+  transition: width 300ms ease;
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-grey-500);
+  text-align: center;
+}
+
+.empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,16 +149,38 @@
   border-radius: 14px;
   background: var(--fg-white);
   color: var(--fg-grey-500);
-  text-align: center;
 
   p {
     margin: 0;
   }
 }
 
-.placeholder-icon {
+.empty-icon {
   width: 40px;
   height: 40px;
   font-size: 40px;
   color: var(--fg-blue-300);
+}
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); opacity: 0; }
+}
+
+@keyframes slide-out-to-left {
+  to { transform: translateX(-100%); opacity: 0; }
+}
+
+@keyframes slide-out-to-right {
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-stage .card-enter,
+  .card-stage .card-leave {
+    animation-duration: 1ms;
+  }
 }

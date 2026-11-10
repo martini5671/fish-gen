@@ -5,6 +5,7 @@ import { FlashcardsPage } from './features/flashcards/flashcards-page';
 import { HomePage } from './features/home/home-page';
 import { LoginPage } from './features/login/login-page';
 import { ProfilePage } from './features/profile/profile-page';
+import { SettingsPage } from './features/settings/settings-page';
 
 export const routes: Routes = [
   {
@@ -22,6 +23,7 @@ export const routes: Routes = [
       { path: 'collections', component: CollectionsPage },
       { path: 'collections/:collectionId', component: FlashcardsPage },
       { path: 'profile', component: ProfilePage },
+      { path: 'settings', component: SettingsPage },
     ],
   },
   { path: '**', redirectTo: '' },

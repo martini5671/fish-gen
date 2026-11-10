@@ -36,6 +36,7 @@ export class HomePage implements OnInit{
   protected readonly navLinks = [
     { path: '/collections', label: 'Collections' },
     { path: '/profile', label: 'Profile' },
+    { path: '/settings', label: 'Settings' },
   ];
 
   protected readonly initials = computed(() =>

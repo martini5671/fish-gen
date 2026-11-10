@@ -1,0 +1,144 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+// White card matching the collections table and the flashcard viewer
+.panel {
+  background: var(--fg-white);
+  border: 3px solid var(--fg-grey-200);
+  border-radius: 14px;
+}
+
+.panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px 28px;
+  border-bottom: 2px solid var(--fg-grey-100);
+}
+
+.panel-title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.panel-subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--fg-grey-500);
+}
+
+// Controls on the left, preview on the right; stacked on narrow screens
+.panel-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 32px;
+  padding: 28px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.face-settings {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-grey-500);
+}
+
+.background-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.swatch {
+  width: 64px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid var(--fg-grey-200);
+  border-radius: var(--fg-radius);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--fg-white);
+  transition: border-color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--fg-blue-400);
+    outline: none;
+  }
+}
+
+.swatch-value {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-grey-700);
+}
+
+.default-button {
+  font-size: 13px;
+}
+
+.text-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: 1px solid var(--fg-grey-300);
+  border-radius: 50%;
+
+  &.dark {
+    background: var(--fg-grey-900);
+  }
+
+  &.light {
+    background: var(--fg-white);
+  }
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--fg-grey-50);
+  border-radius: 12px;
+}
+
+.preview app-flashcard {
+  width: min(420px, 100%);
+  height: 240px;
+  align-self: center;
+}
+
+.preview-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-grey-500);
+  text-align: center;
+}
