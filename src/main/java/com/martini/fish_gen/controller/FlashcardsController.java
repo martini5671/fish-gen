@@ -1,5 +1,6 @@
 package com.martini.fish_gen.controller;
 
+import com.martini.fish_gen.mapper.FlashcardMapper;
 import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
 import com.martini.fish_gen.model.dto.FlashcardDto;
 import com.martini.fish_gen.service.FlashcardService;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class FlashcardsController {
     private final FlashcardService flashCardService;
+    private final FlashcardMapper flashcardMapper;
 
     // 202: the collection is saved as PENDING and filled in asynchronously; poll its generationStatus
     @PostMapping("/ai")
@@ -34,7 +36,7 @@ public class FlashcardsController {
                                                 @RequestParam(defaultValue = "0") @Min(0) int page,
                                                 @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return flashCardService.getFlashcardsByCollectionId(collectionId, page, size)
-                .map(FlashcardDto::from);
+                .map(flashcardMapper::toDto);
     }
 
 }

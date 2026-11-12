@@ -1,5 +1,6 @@
 package com.martini.fish_gen.service;
 
+import com.martini.fish_gen.mapper.TokenUsageMapper;
 import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.dao.TokenUsage;
 import com.martini.fish_gen.model.dto.UserTokenUsage;
@@ -20,6 +21,7 @@ public class TokenUsageService {
     private final ApplicationUserRepository applicationUserRepository;
     private final TokenUsageRepository tokenUsageRepository;
     private final CurrentUserService currentUserService;
+    private final TokenUsageMapper tokenUsageMapper;
 
     @Transactional
     public void subtractAICredits(long creditsToSubtract, String username) {
@@ -46,6 +48,6 @@ public class TokenUsageService {
     public UserTokenUsage getTokenUsage() {
         ApplicationUser applicationUser = applicationUserRepository.findByUsername(currentUserService.getUsername())
                 .orElseThrow(EntityNotFoundException::new);
-        return new UserTokenUsage(applicationUser.getAiCredits());
+        return tokenUsageMapper.toUserTokenUsage(applicationUser);
     }
 }

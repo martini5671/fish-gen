@@ -176,6 +176,46 @@ describe('CollectionsPage', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  // Saving and cancelling leave edit mode before the event bubbles to the row, which used to open the collection
+  describe('does not open the collection while renaming', () => {
+    async function startRenamingWithNavigateSpy() {
+      const page = await render(COLLECTIONS);
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      const input = await startRenamingFirstRow(page);
+      await typeName(input, 'Kitchen words');
+      return { page, input, navigate };
+    }
+
+    it('when the save button is clicked', async () => {
+      const { page, navigate } = await startRenamingWithNavigateSpy();
+
+      page.querySelector<HTMLButtonElement>('.icon-button.save')!.click();
+      await fixture.whenStable();
+
+      expect(store.renameCollection).toHaveBeenCalledWith({ id: 1, name: 'Kitchen words' });
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('when Enter saves the name', async () => {
+      const { input, navigate } = await startRenamingWithNavigateSpy();
+
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      await fixture.whenStable();
+
+      expect(store.renameCollection).toHaveBeenCalledWith({ id: 1, name: 'Kitchen words' });
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('when the cancel button is clicked', async () => {
+      const { page, navigate } = await startRenamingWithNavigateSpy();
+
+      page.querySelector<HTMLButtonElement>('[aria-label="Cancel renaming"]')!.click();
+      await fixture.whenStable();
+
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  });
+
   it('shows an empty message when there are no collections', async () => {
     const page = await render([]);
 

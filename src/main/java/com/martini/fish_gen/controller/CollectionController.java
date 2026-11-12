@@ -1,5 +1,6 @@
 package com.martini.fish_gen.controller;
 
+import com.martini.fish_gen.mapper.CollectionMapper;
 import com.martini.fish_gen.model.dto.*;
 import com.martini.fish_gen.service.CollectionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CollectionController {
     private final CollectionService collectionService;
+    private final CollectionMapper collectionMapper;
 
     // page and size are plain params instead of a Pageable, so clients can only sort by a CollectionSort option
     @GetMapping
@@ -29,7 +31,7 @@ public class CollectionController {
                                               @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
     ) {
         return collectionService.getCollections(collectionFilter, page, size)
-                .map(CollectionDto::from);
+                .map(collectionMapper::toDto);
     }
 
     // ids go in the query (?ids=1&ids=2) because browsers and HttpClient drop the body of a GET request
@@ -38,7 +40,7 @@ public class CollectionController {
             @RequestParam @NotEmpty @Size(max = 100) List<Long> ids) {
         return collectionService.getOwnedCollectionsByIds(ids)
                 .stream()
-                .map(FlashcardCollectionStatusDto::from)
+                .map(collectionMapper::toStatusDto)
                 .toList();
     }
 

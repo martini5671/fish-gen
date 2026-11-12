@@ -3,11 +3,11 @@ package com.martini.fish_gen.service;
 import com.github.javafaker.Faker;
 import com.martini.fish_gen.event.FlashcardGenerationRequestedEvent;
 import com.martini.fish_gen.exception.OutOfAiCreditsException;
+import com.martini.fish_gen.mapper.CollectionMapper;
 import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.dao.Flashcard;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
-import com.martini.fish_gen.model.enumeration.GenerationStatus;
 import com.martini.fish_gen.repository.ApplicationUserRepository;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.repository.FlashcardRepository;
@@ -31,6 +31,7 @@ public class FlashcardService {
     private final ApplicationUserRepository applicationUserRepository;
     private final CurrentUserService currentUserService;
     private final ApplicationEventPublisher eventPublisher;
+    private final CollectionMapper collectionMapper;
 
     // Saves an empty PENDING collection; FlashcardGenerationListener fills it in once this transaction commits
     @Transactional
@@ -48,13 +49,7 @@ public class FlashcardService {
         }
 
         FlashcardCollection flashcardCollection = flashcardCollectionRepository.save(
-                FlashcardCollection.builder()
-                        .name(resolvedCollectionName)
-                        .user(applicationUser)
-                        .text(dto.textToScan())
-                        .targetLanguage(dto.targetLanguage())
-                        .generationStatus(GenerationStatus.PENDING)
-                        .build());
+                collectionMapper.toNewCollection(dto, resolvedCollectionName, applicationUser));
 
         eventPublisher.publishEvent(
                 FlashcardGenerationRequestedEvent.builder()

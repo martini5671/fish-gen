@@ -50,6 +50,10 @@
 }
 
 .card-stage {
+  // The old card leaves completely before the new one comes in, so they never overlap mid-slide
+  --card-leave-duration: 220ms;
+  --card-enter-duration: 280ms;
+
   position: relative;
   width: min(520px, 100%);
   height: 300px;
@@ -60,16 +64,19 @@
     height: 100%;
   }
 
-  // forward (next): the new card comes in from the right and the old one leaves to the left
+  // forward (next): the new card comes in from the right and the old one leaves to the left.
+  // The enter waits for the leave to finish; fill-mode backwards keeps it on its first keyframe
+  // (off to the side and transparent) during that wait, so it doesn't flash in its final place first
   .card-enter {
-    animation: slide-in-from-right 300ms ease-out;
+    animation: slide-in-from-right var(--card-enter-duration) ease-out var(--card-leave-duration) backwards;
   }
 
   // taken out of the flow so the new card sits in its place instead of below it
   .card-leave {
     position: absolute;
     inset: 0;
-    animation: slide-out-to-left 300ms ease-in forwards;
+    pointer-events: none;
+    animation: slide-out-to-left var(--card-leave-duration) ease-in forwards;
   }
 
   // backward (previous): the other way round
@@ -162,25 +169,27 @@
   color: var(--fg-blue-300);
 }
 
+// The cards travel 40% of their width rather than all of it: with the two slides one after the other,
+// a shorter distance keeps the whole change quick, and the fade does the rest
 @keyframes slide-in-from-right {
-  from { transform: translateX(100%); opacity: 0; }
+  from { transform: translateX(40%); opacity: 0; }
 }
 
 @keyframes slide-in-from-left {
-  from { transform: translateX(-100%); opacity: 0; }
+  from { transform: translateX(-40%); opacity: 0; }
 }
 
 @keyframes slide-out-to-left {
-  to { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(-40%); opacity: 0; }
 }
 
 @keyframes slide-out-to-right {
-  to { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(40%); opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-stage .card-enter,
-  .card-stage .card-leave {
-    animation-duration: 1ms;
+  .card-stage {
+    --card-leave-duration: 1ms;
+    --card-enter-duration: 1ms;
   }
 }

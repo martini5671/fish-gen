@@ -6,6 +6,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from '../../state/auth.store';
 import {TokenUsageStore} from '../../state/token-usage.store';
+import { SettingsStore } from '../../state/settings.store';
 
 // Shell for every page behind login: the navbar stays at the top, child routes render below it
 @Component({
@@ -28,9 +29,11 @@ export class HomePage implements OnInit{
 
   protected readonly authStore = inject(AuthStore);
   protected readonly tokenStore = inject(TokenUsageStore);
+  private readonly settingsStore = inject(SettingsStore);
 
   ngOnInit(): void {
     this.tokenStore.loadUsage();
+    this.settingsStore.loadSettings();
   }
 
   protected readonly navLinks = [

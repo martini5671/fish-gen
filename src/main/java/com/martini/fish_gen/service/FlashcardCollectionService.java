@@ -1,6 +1,6 @@
 package com.martini.fish_gen.service;
 
-import com.martini.fish_gen.model.dao.Flashcard;
+import com.martini.fish_gen.mapper.FlashcardMapper;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.dto.GeneratedFlashcard;
 import com.martini.fish_gen.model.enumeration.GenerationStatus;
@@ -17,6 +17,7 @@ import java.util.List;
 public class FlashcardCollectionService {
 
     private final FlashcardCollectionRepository flashcardCollectionRepository;
+    private final FlashcardMapper flashcardMapper;
 
     // Runs in its own transaction so the lazy flashcards collection can be loaded and the status is saved
     // together with the flashcards
@@ -25,10 +26,7 @@ public class FlashcardCollectionService {
         FlashcardCollection flashcardCollection = flashcardCollectionRepository.findById(collectionId)
                 .orElseThrow(EntityNotFoundException::new);
         generatedFlashcards.stream()
-                .map(generatedFlashcard -> Flashcard.builder()
-                        .source(generatedFlashcard.source())
-                        .target(generatedFlashcard.target())
-                        .build())
+                .map(flashcardMapper::toFlashcard)
                 .forEach(flashcardCollection::addFlashcard);
         flashcardCollection.setGenerationStatus(GenerationStatus.COMPLETED);
     }

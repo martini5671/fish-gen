@@ -4,6 +4,8 @@ package com.martini.fish_gen.model.dao;
 import com.martini.fish_gen.model.enumeration.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +44,13 @@ public class ApplicationUser {
     @Setter(value = AccessLevel.PRIVATE)
     @Getter
     private Long aiCredits;
+
+    @Getter
+    @Setter
+    @Builder.Default
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(nullable = false, columnDefinition = "jsonb")
+    private UserSettings settings = UserSettings.defaults();
 
     @Getter
     @Builder.Default

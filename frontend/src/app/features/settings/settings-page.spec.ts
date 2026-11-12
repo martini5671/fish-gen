@@ -1,3 +1,7 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideApiConfiguration } from '../../api/api-configuration';
+import { ToastrService } from 'ngx-toastr';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SettingsStore } from '../../state/settings.store';
 import { SettingsPage } from './settings-page';
@@ -5,9 +9,19 @@ import { SettingsPage } from './settings-page';
 describe('SettingsPage', () => {
   let fixture: ComponentFixture<SettingsPage>;
   let store: InstanceType<typeof SettingsStore>;
+  let http: HttpTestingController;
 
   beforeEach(async () => {
     localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideApiConfiguration(''),
+        { provide: ToastrService, useValue: { error: vi.fn() } },
+      ],
+    });
+    http = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(SettingsPage);
     store = TestBed.inject(SettingsStore);
     await fixture.whenStable();
@@ -71,5 +85,21 @@ describe('SettingsPage', () => {
     await click(button('Use default'));
 
     expect(store.frontBackground()).toBeNull();
+  });
+
+  it('saves the settings to the backend when the user leaves the page after a change', () => {
+    store.setFrontBackground('#ff0000');
+
+    fixture.destroy();
+
+    const request = http.expectOne('/api/v1/settings');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body.frontBackground).toBe('#ff0000');
+  });
+
+  it('does not call the backend when the user leaves without changing anything', () => {
+    fixture.destroy();
+
+    http.expectNone('/api/v1/settings');
   });
 });
