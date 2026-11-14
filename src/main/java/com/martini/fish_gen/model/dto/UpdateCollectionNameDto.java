@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
-// Same limit as the name column and CreateFlashcardsDto
+// Same limit as the name column and CreateFlashcardsWithAIDto
 @Builder
 public record UpdateCollectionNameDto(@NotBlank @Size(max = 255) String collectionName) {
 }

@@ -301,13 +301,3 @@ a {
     transform: translate(-5vmax, -3vmax) scale(1.04);
   }
 }
-
-.row-flash td {
-  animation: row-flash 1.8s ease-in-out;
-}
-
-@keyframes row-flash {
-  0%   { background-color: transparent; }
-  30%  { background-color: var(--fg-blue-50); }
-  100% { background-color: transparent; }
-}

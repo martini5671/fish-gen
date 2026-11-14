@@ -194,33 +194,6 @@
   color: var(--fg-grey-500);
 }
 
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-// Text colors pass 4.5:1 on white; the label carries the meaning, the color only supports it
-.status-completed {
-  color: #166534;
-}
-
-.status-pending {
-  color: #92400e;
-}
-
-.status-failed {
-  color: #991b1b;
-}
-
 .actions-header,
 .actions-cell {
   text-align: right;

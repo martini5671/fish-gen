@@ -7,14 +7,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Collections")
 @RestController
@@ -34,14 +31,10 @@ public class CollectionController {
                 .map(collectionMapper::toDto);
     }
 
-    // ids go in the query (?ids=1&ids=2) because browsers and HttpClient drop the body of a GET request
-    @GetMapping("/status")
-    public List<FlashcardCollectionStatusDto> getCollectionStatus(
-            @RequestParam @NotEmpty @Size(max = 100) List<Long> ids) {
-        return collectionService.getOwnedCollectionsByIds(ids)
-                .stream()
-                .map(collectionMapper::toStatusDto)
-                .toList();
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createCollection(@RequestBody @Valid CreateCollectionDto createCollectionDto) {
+        collectionService.saveCollection(createCollectionDto);
     }
 
     @DeleteMapping("/{id}")

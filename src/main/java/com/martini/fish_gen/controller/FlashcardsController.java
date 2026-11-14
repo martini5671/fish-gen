@@ -1,7 +1,7 @@
 package com.martini.fish_gen.controller;
 
 import com.martini.fish_gen.mapper.FlashcardMapper;
-import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
+import com.martini.fish_gen.model.dto.CreateFlashcardsWithAIDto;
 import com.martini.fish_gen.model.dto.FlashcardDto;
 import com.martini.fish_gen.service.FlashcardService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,10 +22,10 @@ public class FlashcardsController {
     private final FlashcardService flashCardService;
     private final FlashcardMapper flashcardMapper;
 
-    // 202: the collection is saved as PENDING and filled in asynchronously; poll its generationStatus
+    // 202: flashcards are generated asynchronously and added to the collection once ready
     @PostMapping("/ai")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void createAiFlashcards(@RequestBody @Valid CreateFlashcardsDto dto) {
+    public void createAiFlashcards(@RequestBody @Valid CreateFlashcardsWithAIDto dto) {
         flashCardService.createAiFlashcards(dto);
     }
 

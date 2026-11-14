@@ -3,20 +3,20 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { of, throwError } from 'rxjs';
-import { FlashcardsService } from '../../../api/services/flashcards.service';
+import { CollectionsService } from '../../../api/services/collections.service';
 import { CreateCollectionDialog } from './create-collection-dialog';
 
 describe('CreateCollectionDialog', () => {
   let fixture: ComponentFixture<CreateCollectionDialog>;
   const dialogRef = { close: vi.fn() };
-  const flashcardsService = { createAiFlashcards: vi.fn() };
+  const collectionsService = { createCollection: vi.fn() };
   const toastr = { success: vi.fn(), error: vi.fn() };
 
   async function render(): Promise<HTMLElement> {
     TestBed.configureTestingModule({
       providers: [
         { provide: MatDialogRef, useValue: dialogRef },
-        { provide: FlashcardsService, useValue: flashcardsService },
+        { provide: CollectionsService, useValue: collectionsService },
         { provide: ToastrService, useValue: toastr },
       ],
     });
@@ -25,7 +25,7 @@ describe('CreateCollectionDialog', () => {
     return fixture.nativeElement;
   }
 
-  async function type(element: HTMLInputElement | HTMLTextAreaElement, value: string) {
+  async function type(element: HTMLInputElement, value: string) {
     element.value = value;
     element.dispatchEvent(new Event('input'));
     await fixture.whenStable();
@@ -38,55 +38,60 @@ describe('CreateCollectionDialog', () => {
 
   beforeEach(() => vi.clearAllMocks());
 
-  it('does not send a text shorter than 10 characters', async () => {
+  it('only asks for the collection name', async () => {
     const page = await render();
-    await type(page.querySelector('textarea')!, 'too short');
+
+    expect(page.querySelectorAll('input')).toHaveLength(1);
+    expect(page.querySelector('textarea')).toBeNull();
+    expect(page.querySelector('mat-select')).toBeNull();
+  });
+
+  it('sends the trimmed name and closes as created', async () => {
+    collectionsService.createCollection.mockReturnValue(of(undefined));
+    const page = await render();
+    await type(page.querySelector('input')!, '  Spanish verbs  ');
 
     await submit(page);
 
-    expect(flashcardsService.createAiFlashcards).not.toHaveBeenCalled();
-    expect(page.querySelector('mat-error')?.textContent).toContain('at least 10 characters');
-  });
-
-  it('counts the typed characters', async () => {
-    const page = await render();
-
-    await type(page.querySelector('textarea')!, 'Hello world');
-
-    expect(page.textContent).toContain('11 / 3000');
-  });
-
-  it('sends the text in English with no name by default and closes as created', async () => {
-    flashcardsService.createAiFlashcards.mockReturnValue(of(undefined));
-    const page = await render();
-    await type(page.querySelector('textarea')!, 'Der Hund schläft im Garten.');
-    await type(page.querySelector('input')!, '   ');
-
-    await submit(page);
-
-    expect(flashcardsService.createAiFlashcards).toHaveBeenCalledWith({
-      body: {
-        textToScan: 'Der Hund schläft im Garten.',
-        collectionName: null,
-        targetLanguage: 'ENGLISH',
-      },
+    expect(collectionsService.createCollection).toHaveBeenCalledWith({
+      body: { name: 'Spanish verbs' },
     });
     expect(dialogRef.close).toHaveBeenCalledWith(true);
   });
 
+  it('sends no name when left blank so the backend generates one', async () => {
+    collectionsService.createCollection.mockReturnValue(of(undefined));
+    const page = await render();
+    await type(page.querySelector('input')!, '   ');
+
+    await submit(page);
+
+    expect(collectionsService.createCollection).toHaveBeenCalledWith({ body: { name: null } });
+    expect(dialogRef.close).toHaveBeenCalledWith(true);
+  });
+
+  it('does not send a name longer than 255 characters', async () => {
+    const page = await render();
+    await type(page.querySelector('input')!, 'a'.repeat(256));
+
+    await submit(page);
+
+    expect(collectionsService.createCollection).not.toHaveBeenCalled();
+    expect(page.querySelector('mat-error')?.textContent).toContain('at most 255 characters');
+  });
+
   it('stays open and shows the backend error when creation fails', async () => {
-    flashcardsService.createAiFlashcards.mockReturnValue(
+    collectionsService.createCollection.mockReturnValue(
       throwError(
-        () => new HttpErrorResponse({ status: 402, error: { detail: 'Not enough AI credits' } }),
+        () => new HttpErrorResponse({ status: 400, error: { detail: 'Invalid collection name' } }),
       ),
     );
     const page = await render();
-    await type(page.querySelector('textarea')!, 'Der Hund schläft im Garten.');
 
     await submit(page);
 
     expect(dialogRef.close).not.toHaveBeenCalled();
-    expect(toastr.error).toHaveBeenCalledWith('Not enough AI credits', 'Creation failed');
+    expect(toastr.error).toHaveBeenCalledWith('Invalid collection name', 'Creation failed');
     expect(page.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled).toBe(false);
   });
 });

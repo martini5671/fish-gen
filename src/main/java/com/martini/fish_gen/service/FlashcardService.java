@@ -1,13 +1,11 @@
 package com.martini.fish_gen.service;
 
-import com.github.javafaker.Faker;
 import com.martini.fish_gen.event.FlashcardGenerationRequestedEvent;
 import com.martini.fish_gen.exception.OutOfAiCreditsException;
-import com.martini.fish_gen.mapper.CollectionMapper;
 import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.dao.Flashcard;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
-import com.martini.fish_gen.model.dto.CreateFlashcardsDto;
+import com.martini.fish_gen.model.dto.CreateFlashcardsWithAIDto;
 import com.martini.fish_gen.repository.ApplicationUserRepository;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.repository.FlashcardRepository;
@@ -20,36 +18,28 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
-
 @Service
 @RequiredArgsConstructor
 public class FlashcardService {
     private final FlashcardCollectionRepository flashcardCollectionRepository;
     private final FlashcardRepository flashcardRepository;
-    private final Faker faker = new Faker();
     private final ApplicationUserRepository applicationUserRepository;
     private final CurrentUserService currentUserService;
     private final ApplicationEventPublisher eventPublisher;
-    private final CollectionMapper collectionMapper;
 
-    // Saves an empty PENDING collection; FlashcardGenerationListener fills it in once this transaction commits
     @Transactional
-    public void createAiFlashcards(CreateFlashcardsDto dto) {
-        String resolvedCollectionName = Objects.requireNonNullElse(dto.collectionName(),
-                faker.color().name() + "_" + faker.animal().name());
+    public void createAiFlashcards(CreateFlashcardsWithAIDto dto) {
 
         ApplicationUser applicationUser = applicationUserRepository.findByUsername(
                         currentUserService.getUsername())
                 .orElseThrow(EntityNotFoundException::new);
 
-        // Checked here, on the request thread, so the client gets the error instead of a FAILED collection
-        if (!applicationUser.hasEnoughAiCredits()) {
-            throw new OutOfAiCreditsException();
-        }
+        if (!applicationUser.hasEnoughAiCredits()) throw new OutOfAiCreditsException();
 
-        FlashcardCollection flashcardCollection = flashcardCollectionRepository.save(
-                collectionMapper.toNewCollection(dto, resolvedCollectionName, applicationUser));
+        FlashcardCollection flashcardCollection = flashcardCollectionRepository.findByIdIsAndUser_Username(
+                        dto.collectionId(),
+                        applicationUser.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Collection with id " + dto.collectionId() + " not found"));
 
         eventPublisher.publishEvent(
                 FlashcardGenerationRequestedEvent.builder()

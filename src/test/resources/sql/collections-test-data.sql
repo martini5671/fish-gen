@@ -3,20 +3,20 @@
 -- Rows 1-12 belong to test-user (id 1) from users-test-data.sql; row 13 belongs to other-user (id 2) and matches
 -- the "red" name filter and sits between test-user's dates, so it checks that searches and sorting are scoped to the owner.
 -- created_at values are all distinct, so NEWEST / OLDEST give one fixed order.
-INSERT INTO flashcard_collection (id, name, text, target_language, created_at, updated_at, user_id)
-VALUES (1, 'Red_fox', 'The red fox jumps over the lazy dog.', 'POLISH', '2026-09-01 00:00:00', NULL, 1),
-       (2, 'red panda', 'Red pandas live in the Himalayas.', 'POLISH', '2026-09-02 12:30:00', '2026-09-03 08:00:00', 1),
-       (3, 'whale_red', 'The blue whale is the largest animal.', 'POLISH', '2026-09-05 09:15:00', NULL, 1),
-       (4, 'Green turtle', 'Green turtles eat seagrass.', 'POLISH', '2026-09-10 00:00:00', NULL, 1),
-       (5, 'Kitchen vocabulary', 'Knife, fork, spoon, plate, cup.', 'POLISH', '2026-09-10 23:59:59', NULL, 1),
-       (6, '100% useful phrases', 'Thank you, please, excuse me.', 'POLISH', '2026-09-11 00:00:00', NULL, 1),
-       (7, 'Travel essentials', 'Where is the train station?', 'POLISH', '2026-09-15 14:00:00', '2026-09-16 10:00:00', 1),
-       (8, 'Business English', 'Let us schedule a meeting.', 'POLISH', '2026-09-18 08:45:00', NULL, 1),
-       (9, 'Polish basics', 'Dzień dobry, dziękuję, proszę.', 'ENGLISH', '2026-09-20 17:20:00', NULL, 1),
-       (10, 'Weather words', 'Rain, snow, sunshine, wind.', 'POLISH', '2026-09-25 11:11:11', NULL, 1),
-       (11, 'Empty collection', 'This collection has no flashcards.', 'POLISH', '2026-09-28 06:00:00', NULL, 1),
-       (12, 'Animals_and_colors', 'Red fox, blue whale, green turtle.', 'POLISH', '2026-09-30 23:59:59', NULL, 1),
-       (13, 'Red other-user', 'Belongs to other-user, so test-user must never see it.', 'POLISH', '2026-09-29 12:00:00', NULL, 2);
+INSERT INTO flashcard_collection (id, name, created_at, updated_at, user_id)
+VALUES (1, 'Red_fox', '2026-09-01 00:00:00', NULL, 1),
+       (2, 'red panda', '2026-09-02 12:30:00', '2026-09-03 08:00:00', 1),
+       (3, 'whale_red', '2026-09-05 09:15:00', NULL, 1),
+       (4, 'Green turtle', '2026-09-10 00:00:00', NULL, 1),
+       (5, 'Kitchen vocabulary', '2026-09-10 23:59:59', NULL, 1),
+       (6, '100% useful phrases', '2026-09-11 00:00:00', NULL, 1),
+       (7, 'Travel essentials', '2026-09-15 14:00:00', '2026-09-16 10:00:00', 1),
+       (8, 'Business English', '2026-09-18 08:45:00', NULL, 1),
+       (9, 'Polish basics', '2026-09-20 17:20:00', NULL, 1),
+       (10, 'Weather words', '2026-09-25 11:11:11', NULL, 1),
+       (11, 'Empty collection', '2026-09-28 06:00:00', NULL, 1),
+       (12, 'Animals_and_colors', '2026-09-30 23:59:59', NULL, 1),
+       (13, 'Red other-user', '2026-09-29 12:00:00', NULL, 2);
 
 INSERT INTO flashcard (id, flashcard_collection_id, source, target)
 VALUES (1, 1, 'fox', 'lis'),
@@ -34,10 +34,6 @@ VALUES (1, 1, 'fox', 'lis'),
        (13, 9, 'dziękuję', 'thank you'),
        (14, 9, 'proszę', 'please'),
        (15, 13, 'secret', 'sekret');
-
--- Every collection defaults to COMPLETED; these two cover the other generation statuses.
-UPDATE flashcard_collection SET generation_status = 'PENDING' WHERE id = 11;
-UPDATE flashcard_collection SET generation_status = 'FAILED' WHERE id = 12;
 
 -- Rows above use explicit ids, so move the identity sequences past them.
 -- Otherwise entities saved during a test would collide with id 1, 2, ...

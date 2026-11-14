@@ -2,6 +2,7 @@ package com.martini.fish_gen.controller;
 
 import com.martini.fish_gen.configuration.BaseIntegrationTest;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
+import com.martini.fish_gen.model.dto.CreateCollectionDto;
 import com.martini.fish_gen.model.dto.UpdateCollectionNameDto;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.repository.FlashcardRepository;
@@ -13,7 +14,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.util.List;
-import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -146,9 +146,7 @@ public class CollectionControllerTests extends BaseIntegrationTest {
                 .expectBody()
                 .jsonPath("$.content.length()").isEqualTo(3)
                 .jsonPath("$.content[*].id").value(new ParameterizedTypeReference<List<Long>>() {},
-                        ids -> assertThat(ids).containsExactlyInAnyOrder(1L, 2L, 3L))
-                .jsonPath("$.content[*].targetLanguage").value(new ParameterizedTypeReference<List<String>>() {},
-                        languages -> assertThat(languages).containsOnly("POLISH"));
+                        ids -> assertThat(ids).containsExactlyInAnyOrder(1L, 2L, 3L));
     }
 
     @Test
@@ -293,80 +291,91 @@ public class CollectionControllerTests extends BaseIntegrationTest {
     }
 
     @Test
-    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
-    void givenOwnCollectionIds_whenGetCollectionStatus_shouldReturnStatusOfEach() {
-        getCollectionStatus(List.of(10L, 11L, 12L))
-                .expectStatus()
-                .isOk()
-                .expectBody()
-                .jsonPath("$.length()").isEqualTo(3)
-                .jsonPath("$[?(@.collectionId == 10)].generationStatus").isEqualTo("COMPLETED")
-                .jsonPath("$[?(@.collectionId == 11)].generationStatus").isEqualTo("PENDING")
-                .jsonPath("$[?(@.collectionId == 12)].generationStatus").isEqualTo("FAILED");
-    }
-
-    @Test
-    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
-    void givenUnknownCollectionId_whenGetCollectionStatus_shouldReturnOnlyExistingOnes() {
-        getCollectionStatus(List.of(1L, 999L))
-                .expectStatus()
-                .isOk()
-                .expectBody()
-                .jsonPath("$[*].collectionId").value(new ParameterizedTypeReference<List<Long>>() {},
-                        ids -> assertThat(ids).containsExactly(1L));
-    }
-
-    @Test
-    @Sql(scripts = "/sql/collections-test-data.sql", executionPhase = BEFORE_TEST_METHOD)
-    void givenCollectionOfOtherUser_whenGetCollectionStatus_shouldNotReturnIt() {
-        getCollectionStatus(List.of(1L, OTHER_USER_COLLECTION_ID))
-                .expectStatus()
-                .isOk()
-                .expectBody()
-                .jsonPath("$[*].collectionId").value(new ParameterizedTypeReference<List<Long>>() {},
-                        ids -> assertThat(ids).containsExactly(1L));
-    }
-
-    @Test
-    void givenNoCollectionIds_whenGetCollectionStatus_shouldReturn400() {
-        getCollectionStatus(List.of())
-                .expectStatus()
-                .isBadRequest();
-    }
-
-    @Test
-    void givenEmptyIdsParam_whenGetCollectionStatus_shouldReturn400() {
-        authenticatedRestTestClient().get()
-                .uri("/api/v1/collections/status?ids=")
-                .exchange()
-                .expectStatus()
-                .isBadRequest();
-    }
-
-    @Test
-    void givenMoreThan100CollectionIds_whenGetCollectionStatus_shouldReturn400() {
-        getCollectionStatus(LongStream.rangeClosed(1, 101).boxed().toList())
-                .expectStatus()
-                .isBadRequest();
-    }
-
-    // Sends the ids as a repeated query param (?ids=1&ids=2), the same way the Angular client does
-    private RestTestClient.ResponseSpec getCollectionStatus(List<Long> collectionIds) {
-        return authenticatedRestTestClient().get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/v1/collections/status")
-                        .queryParam("ids", collectionIds.toArray())
-                        .build())
-                .exchange();
-    }
-
-    @Test
     void givenNoCollectionExists_whenDelete_shouldReturn404() {
         authenticatedRestTestClient().delete()
                 .uri("/api/v1/collections/{id}", 999)
                 .exchange()
                 .expectStatus()
                 .isNotFound();
+    }
+
+    @Test
+    void givenName_whenCreateCollection_shouldSaveEmptyCollectionOwnedByUser() {
+        createCollection(CreateCollectionDto.builder().name("  Spanish verbs  ").build())
+                .expectStatus()
+                .isCreated();
+
+        List<FlashcardCollection> collections = flashcardCollectionRepository.findAll();
+        assertThat(collections).hasSize(1);
+        FlashcardCollection collection = collections.getFirst();
+        assertThat(collection.getName()).isEqualTo("Spanish verbs");
+        assertThat(collection.getCreatedAt()).isNotNull();
+        assertThat(flashcardRepository.findAll()).isEmpty();
+        // Looked up through the owner because the lazy user association can't be read outside a transaction
+        assertThat(flashcardCollectionRepository.findByIdIsAndUser_Username(collection.getId(), TEST_USER_USERNAME))
+                .as("collection is owned by the logged-in user")
+                .isPresent();
+    }
+
+    @Test
+    void givenNoName_whenCreateCollection_shouldGenerateName() {
+        createCollection(CreateCollectionDto.builder().build())
+                .expectStatus()
+                .isCreated();
+
+        assertThat(flashcardCollectionRepository.findAll())
+                .singleElement()
+                .extracting(FlashcardCollection::getName)
+                .asString()
+                .isNotBlank()
+                .contains("_");
+    }
+
+    @Test
+    void givenBlankName_whenCreateCollection_shouldGenerateName() {
+        createCollection(CreateCollectionDto.builder().name("   ").build())
+                .expectStatus()
+                .isCreated();
+
+        assertThat(flashcardCollectionRepository.findAll())
+                .singleElement()
+                .extracting(FlashcardCollection::getName)
+                .asString()
+                .isNotBlank()
+                .contains("_");
+    }
+
+    @Test
+    void givenTooLongName_whenCreateCollection_shouldReturn400AndSaveNothing() {
+        createCollection(CreateCollectionDto.builder().name("a".repeat(256)).build())
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.errors[*].field").value(new ParameterizedTypeReference<List<String>>() {},
+                        fields -> assertThat(fields).containsExactly("name"));
+
+        assertThat(flashcardCollectionRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void givenNoToken_whenCreateCollection_shouldReturn401() {
+        restTestClient.post()
+                .uri("/api/v1/collections")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(CreateCollectionDto.builder().name("test").build())
+                .exchange()
+                .expectStatus()
+                .isUnauthorized();
+
+        assertThat(flashcardCollectionRepository.findAll()).isEmpty();
+    }
+
+    private RestTestClient.ResponseSpec createCollection(CreateCollectionDto body) {
+        return authenticatedRestTestClient().post()
+                .uri("/api/v1/collections")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .exchange();
     }
 
 }

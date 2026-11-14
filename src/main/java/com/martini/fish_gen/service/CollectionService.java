@@ -1,7 +1,11 @@
 package com.martini.fish_gen.service;
 
+import com.github.javafaker.Faker;
+import com.martini.fish_gen.model.dao.ApplicationUser;
 import com.martini.fish_gen.model.dao.FlashcardCollection;
 import com.martini.fish_gen.model.dto.CollectionFilter;
+import com.martini.fish_gen.model.dto.CreateCollectionDto;
+import com.martini.fish_gen.repository.ApplicationUserRepository;
 import com.martini.fish_gen.repository.FlashcardCollectionRepository;
 import com.martini.fish_gen.util.LikePatternUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,8 @@ public class CollectionService {
 
     private final FlashcardCollectionRepository flashcardCollectionRepository;
     private final CurrentUserService currentUserService;
+    private final ApplicationUserRepository applicationUserRepository;
+    private final Faker faker = new Faker();
 
     @Transactional(readOnly = true)
     public Page<FlashcardCollection> getCollections(CollectionFilter filter, int page, int size) {
@@ -45,9 +50,19 @@ public class CollectionService {
                 .orElseThrow(() -> new EntityNotFoundException("Collection with id " + id + " not found"));
     }
 
-    // Ids of other users' collections are silently left out, same as ids that don't exist
-    @Transactional(readOnly = true)
-    public List<FlashcardCollection> getOwnedCollectionsByIds(List<Long> ids) {
-        return flashcardCollectionRepository.findAllByIdInAndUser_Username(ids, currentUserService.getUsername());
+    @Transactional
+    public void saveCollection(CreateCollectionDto createCollectionDto) {
+        String username = currentUserService.getUsername();
+        ApplicationUser applicationUser = applicationUserRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("Username " + username + " not found"));
+        String name = createCollectionDto.name() == null || createCollectionDto.name().isBlank()
+                ? faker.color().name() + "_" + faker.animal().name()
+                : createCollectionDto.name().trim();
+        flashcardCollectionRepository.save(
+                FlashcardCollection.builder()
+                        .name(name)
+                        .user(applicationUser)
+                        .build()
+        );
     }
 }

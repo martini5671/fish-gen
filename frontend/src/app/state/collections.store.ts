@@ -1,14 +1,13 @@
-import {HttpContext, HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import {computed, inject} from '@angular/core';
 import {tapResponse} from '@ngrx/operators';
 import {patchState, signalStore, withComputed, withHooks, withMethods, withState,} from '@ngrx/signals';
 import {rxMethod} from '@ngrx/signals/rxjs-interop';
 import {ToastrService} from 'ngx-toastr';
-import {distinctUntilChanged, EMPTY, exhaustMap, mergeMap, pipe, switchMap, timer} from 'rxjs';
+import {mergeMap, pipe, switchMap} from 'rxjs';
 import {GetCollections$Params} from '../api/fn/collections/get-collections';
 import {CollectionDto} from '../api/models/collection-dto';
 import {CollectionsService} from '../api/services/collections.service';
-import {SKIP_LOADER} from '../core/loader/loader.interceptor';
 
 export type CollectionSort = NonNullable<GetCollections$Params['sort']>;
 
@@ -19,7 +18,6 @@ type CollectionsState = {
   sort: CollectionSort;
   pageIndex: number;
   pageSize: number;
-  updatedCollectionIds: number[]
 };
 
 const initialState: CollectionsState = {
@@ -29,18 +27,12 @@ const initialState: CollectionsState = {
   sort: 'NEWEST',
   pageIndex: 0,
   pageSize: 10,
-  updatedCollectionIds: []
 };
-
-// every second
-const POLL_INTERVAL_MS = 1000;
-// matches the row-flash animation in styles.scss
-const ROW_FLASH_MS = 1800;
 
 // Provided by CollectionsPage, so every visit starts from the first page with the default sort
 export const CollectionsStore = signalStore(
   withState(initialState),
-  withComputed(({collections,name, sort, pageIndex, pageSize}) => ({
+  withComputed(({name, sort, pageIndex, pageSize}) => ({
     query: computed<GetCollections$Params>(() => ({
       // An empty search is left out so the backend returns every collection
       ...(name() ? {name: name()} : {}),
@@ -48,11 +40,6 @@ export const CollectionsStore = signalStore(
       page: pageIndex(),
       size: pageSize(),
     })),
-    pendingCollectionIds: computed(() => {
-      return collections()
-       .filter(collection => collection.generationStatus === "PENDING")
-       .map(pendingCollection => pendingCollection.id);
-    })
   })),
   withMethods(
     (store, collectionsService = inject(CollectionsService), toastr = inject(ToastrService)) => ({
@@ -74,58 +61,6 @@ export const CollectionsStore = signalStore(
                   ),
               }),
             ),
-          ),
-        ),
-      ),
-      pollWhilePending: rxMethod<number[]>(
-        pipe(
-          // the array is a new reference on every recompute, so compare by content
-          distinctUntilChanged((a, b) => a.length === b.length && a.every((id, i) => id === b[i])),
-          switchMap((ids) =>
-            ids.length === 0
-              ? EMPTY
-              : timer(POLL_INTERVAL_MS, POLL_INTERVAL_MS).pipe(
-                // skip a tick if the previous poll hasn't answered yet
-                exhaustMap(() => {
-                  console.log('[CollectionsStore] polling collection status for ids', ids);
-                  return collectionsService
-                    .getCollectionStatus({ids: ids},
-                      new HttpContext().set(SKIP_LOADER, true),
-                    )
-                    .pipe(
-                      tapResponse({
-                        next: (statuses) => {
-                          const statusById = new Map(
-                            statuses.map((s) => [s.collectionId, s.generationStatus]),
-                          );
-                          // the endpoint only returns statuses, so merge them into the collections we have;
-                          // unchanged ones keep their reference so the table doesn't re-render them
-                          const changedIds: number[] = [];
-                          const collections = store.collections().map((c) => {
-                            const status = statusById.get(c.id);
-                            if (!status || status === c.generationStatus) return c;
-                            changedIds.push(c.id);
-                            return {...c, generationStatus: status};
-                          });
-                          if (changedIds.length === 0) return;
-                          patchState(store, {
-                            collections,
-                            updatedCollectionIds: [...store.updatedCollectionIds(), ...changedIds],
-                          });
-                          // drop the ids once the flash is over, so a later re-render doesn't flash them again
-                          setTimeout(
-                            () => patchState(store, {
-                              updatedCollectionIds: store.updatedCollectionIds().filter((id) => !changedIds.includes(id)),
-                            }),
-                            ROW_FLASH_MS,
-                          );
-                        },
-                        // a failed poll is not worth a toast; the next tick tries again
-                        error: () => {},
-                      }),
-                    );
-                }),
-              ),
           ),
         ),
       ),
@@ -206,8 +141,6 @@ export const CollectionsStore = signalStore(
     onInit(store) {
       // Reloads whenever the query changes
       store.loadCollections(store.query);
-      // Polls statuses while any collection on the page is PENDING, stops once none are
-      store.pollWhilePending(store.pendingCollectionIds);
     },
   }),
 );

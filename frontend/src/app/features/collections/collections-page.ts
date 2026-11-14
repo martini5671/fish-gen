@@ -23,8 +23,6 @@ import {Router} from '@angular/router';
 import {debounceTime, distinctUntilChanged, exhaustMap, map, Subject, timer} from 'rxjs';
 import {CollectionDto} from '../../api/models/collection-dto';
 import {CollectionSort, CollectionsStore} from '../../state/collections.store';
-import {TokenUsageStore} from '../../state/token-usage.store';
-import {capitalize} from '../../shared/capitalize';
 import {ConfirmDialog, ConfirmDialogData} from '../../shared/confirm-dialog/confirm-dialog';
 import {CreateCollectionDialog} from './create-collection-dialog/create-collection-dialog';
 
@@ -50,11 +48,10 @@ const NAME_MAX_LENGTH = 255;
 })
 export class CollectionsPage {
   protected readonly store = inject(CollectionsStore);
-  private readonly tokenUsageStore = inject(TokenUsageStore);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
 
-  protected readonly columns = ['name', 'targetLanguage', 'generationStatus', 'createdAt', 'actions'];
+  protected readonly columns = ['name', 'createdAt', 'actions'];
   protected readonly pageSizeOptions = [10, 25, 50];
 
   protected readonly sortOptions: { value: CollectionSort; label: string }[] = [
@@ -89,10 +86,9 @@ export class CollectionsPage {
       })
       .afterClosed()
       .subscribe((created) => {
+        // The new collection is empty; creating it doesn't spend AI credits
         if (created) {
-          // The new collection shows up as PENDING, and generating it spent AI credits
           this.store.reload();
-          this.tokenUsageStore.loadUsage();
         }
       });
   }
@@ -156,21 +152,8 @@ export class CollectionsPage {
     this.search$.next(name);
   }
 
-  // keeps a row's <tr> when its collection object is replaced, so a status update doesn't recreate it
+  // keeps a row's <tr> when its collection object is replaced, e.g. after a rename
   protected readonly trackById = (_: number, collection: CollectionDto): number => collection.id;
-
-  // mat-table rows are typed as any, so the template reads labels through these typed helper
-  protected languageLabel(collection: CollectionDto): string {
-    return collection.targetLanguage ? capitalize(collection.targetLanguage) : '–';
-  }
-
-  protected statusLabel(collection: CollectionDto): string {
-    return capitalize(collection.generationStatus);
-  }
-
-  protected statusClass(collection: CollectionDto): string {
-    return `status status-${collection.generationStatus.toLowerCase()}`;
-  }
 
   protected onPage(event: PageEvent): void {
     this.store.setPage(event.pageIndex, event.pageSize);

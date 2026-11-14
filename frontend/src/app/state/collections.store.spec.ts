@@ -9,8 +9,6 @@ import { CollectionsStore } from './collections.store';
 const COLLECTION: CollectionDto = {
   id: 1,
   name: 'Kitchen vocabulary',
-  targetLanguage: 'ENGLISH',
-  generationStatus: 'COMPLETED',
   createdAt: '2026-10-12T10:00:00',
 };
 

@@ -5,21 +5,16 @@ import { provideRouter, Router } from '@angular/router';
 import { CollectionDto } from '../../api/models/collection-dto';
 import { CollectionsPage } from './collections-page';
 import { CollectionsStore } from '../../state/collections.store';
-import { TokenUsageStore } from '../../state/token-usage.store';
 
 const COLLECTIONS: CollectionDto[] = [
   {
     id: 1,
     name: 'Kitchen vocabulary',
-    targetLanguage: 'ENGLISH',
-    generationStatus: 'COMPLETED',
     createdAt: '2026-10-12T10:00:00',
   },
   {
     id: 2,
     name: 'Biology – the cell',
-    targetLanguage: 'POLISH',
-    generationStatus: 'PENDING',
     createdAt: '2026-10-23T10:00:00',
   },
 ];
@@ -33,7 +28,6 @@ describe('CollectionsPage', () => {
     sort: signal('NEWEST'),
     pageIndex: signal(0),
     pageSize: signal(10),
-    updatedCollectionIds: signal<number[]>([]),
     setName: vi.fn(),
     setSort: vi.fn(),
     setPage: vi.fn(),
@@ -41,7 +35,6 @@ describe('CollectionsPage', () => {
     deleteCollection: vi.fn(),
     renameCollection: vi.fn(),
   };
-  const tokenUsageStore = { loadUsage: vi.fn() };
 
   async function render(collections: CollectionDto[]): Promise<HTMLElement> {
     store.collections.set(collections);
@@ -50,7 +43,6 @@ describe('CollectionsPage', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: TokenUsageStore, useValue: tokenUsageStore },
         // Dialogs report afterClosed only once their close animation ends, which never fires in jsdom
         { provide: MATERIAL_ANIMATIONS, useValue: { animationsDisabled: true } },
       ],
@@ -147,15 +139,21 @@ describe('CollectionsPage', () => {
     expect(store.deleteCollection).not.toHaveBeenCalled();
   });
 
-  it('shows one row per collection with readable language and status', async () => {
+  it('shows one row per collection with its name', async () => {
     const page = await render(COLLECTIONS);
 
     const rows = page.querySelectorAll('tr.mat-mdc-row');
     expect(rows.length).toBe(2);
     expect(rows[0].textContent).toContain('Kitchen vocabulary');
-    expect(rows[0].textContent).toContain('English');
-    expect(rows[0].textContent).toContain('Completed');
-    expect(rows[1].textContent).toContain('Pending');
+    expect(rows[1].textContent).toContain('Biology – the cell');
+  });
+
+  it('shows no language or status columns', async () => {
+    const page = await render(COLLECTIONS);
+
+    const headers = [...page.querySelectorAll('th')].map((th) => th.textContent?.trim());
+    expect(headers).not.toContain('Language');
+    expect(headers).not.toContain('Status');
   });
 
   it('opens the flashcards of a collection when its row is clicked', async () => {
