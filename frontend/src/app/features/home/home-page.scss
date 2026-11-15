@@ -1,9 +1,18 @@
 @use '@angular/material' as mat;
 
+// A column at least as tall as the screen: the nav bar on top, the page content filling the rest,
+// so pages can pin things (like a paginator) to the bottom
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: var(--fg-grey-50);
+}
+
+mat-tab-nav-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 
 // White bar with a hairline bottom border; the content is centered to the page width
@@ -137,7 +146,13 @@
   border-radius: var(--fg-radius);
 }
 
+// The routed page fills the remaining height (its host is a flex item here)
 .page-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 80%;
   margin: 0 auto;
   padding: 32px 24px 56px;

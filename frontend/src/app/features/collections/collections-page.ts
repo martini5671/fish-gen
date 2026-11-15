@@ -25,6 +25,7 @@ import {CollectionDto} from '../../api/models/collection-dto';
 import {CollectionSort, CollectionsStore} from '../../state/collections.store';
 import {ConfirmDialog, ConfirmDialogData} from '../../shared/confirm-dialog/confirm-dialog';
 import {CreateCollectionDialog} from './create-collection-dialog/create-collection-dialog';
+import {CollectionComponent} from './collection-component/collection-component';
 
 // Same limit as the backend's UpdateCollectionNameDto
 const NAME_MAX_LENGTH = 255;
@@ -40,6 +41,7 @@ const NAME_MAX_LENGTH = 255;
     MatPaginatorModule,
     MatSelectModule,
     MatTableModule,
+    CollectionComponent,
   ],
   providers: [CollectionsStore],
   templateUrl: './collections-page.html',

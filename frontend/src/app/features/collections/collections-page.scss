@@ -1,6 +1,8 @@
 @use '@angular/material' as mat;
 
+// Fills the height page-content gives it, so the paginator can sit at the bottom of the screen
 :host {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -15,6 +17,7 @@
 
 .collections {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
 }
@@ -50,6 +53,16 @@
   padding: 0 20px;
   font-size: 15px;
   font-weight: 600;
+}
+
+// Collection stacks fill the row and wrap; each one is at least 260px wide (the text scales with it),
+// so phones get one full-width stack per row
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+  gap: 36px 32px;
+  // Room for the hover lift and the fanned-out back cards
+  padding: 10px 8px 4px;
 }
 
 // White card around the table and paginator, as in the mock
@@ -251,4 +264,7 @@ mat-paginator {
   ));
 
   border-top: 1px solid var(--fg-grey-200);
+  // Takes up the free space above it, so it sits at the bottom when there are few collections
+  // and simply follows the grid when the page scrolls
+  margin-top: auto;
 }

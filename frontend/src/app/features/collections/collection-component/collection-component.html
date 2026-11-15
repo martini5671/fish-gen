@@ -1,0 +1,20 @@
+<button
+  type="button"
+  class="collection-button"
+  [attr.aria-label]="collectionName()"
+  (click)="openCollection()"
+>
+  <svg viewBox="99 95 188 126" xmlns="http://www.w3.org/2000/svg" focusable="false">
+    <rect class="back" x="116" y="96" width="170" height="110" rx="12"/>
+    <rect class="middle" x="108" y="103" width="170" height="110" rx="12"/>
+    <rect class="front" x="100" y="110" width="170" height="110" rx="12"/>
+
+    <!-- HTML inside the front card so long names can be ellipsized -->
+    <foreignObject x="100" y="110" width="170" height="110">
+      <div class="label">
+        <span class="name">{{ collectionName() }}</span>
+        <span class="date">{{ creationDate() | date: 'short' }}</span>
+      </div>
+    </foreignObject>
+  </svg>
+</button>
